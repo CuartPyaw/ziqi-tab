@@ -29,11 +29,16 @@
             autofocus
             autocomplete="off"
           >
-          <select id="search-engine" class="engine-select" title="选择搜索引擎">
-            <option value="google">Google</option>
-            <option value="bing">Bing</option>
-            <option value="duckduckgo">DuckDuckGo</option>
-          </select>
+          <div class="engine-dropdown" id="engine-dropdown">
+            <button class="engine-trigger" id="engine-trigger" type="button" title="选择搜索引擎" aria-haspopup="true">
+              <img class="engine-icon" id="engine-icon" src="" alt="" />
+              <svg class="engine-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+            <div class="engine-menu" id="engine-menu" hidden></div>
+          </div>
+          <div class="engine-backdrop" id="engine-backdrop" hidden></div>
         </div>
       </div>
     </header>
