@@ -2,14 +2,15 @@
  * Clock — updates time, date, and greeting every second.
  */
 
-const elTime = document.getElementById('time');
+const elHm = document.getElementById('time-hm');
+const elSec = document.getElementById('time-sec');
 const elDate = document.getElementById('date');
 const elGreeting = document.getElementById('greeting');
 
 function formatTime(date) {
   const hh = String(date.getHours()).padStart(2, '0');
   const mm = String(date.getMinutes()).padStart(2, '0');
-  return `${hh}:${mm}`;
+  return { hm: `${hh}:${mm}`, sec: `:${String(date.getSeconds()).padStart(2, '0')}` };
 }
 
 function formatDate(date) {
@@ -22,18 +23,20 @@ function formatDate(date) {
 }
 
 function getGreeting(hour) {
-  if (hour < 6)  return '夜深了 🌙';
-  if (hour < 9)  return '早上好 ☀️';
-  if (hour < 12) return '上午好 🌤️';
-  if (hour < 14) return '中午好 ☀️';
-  if (hour < 18) return '下午好 🌿';
-  if (hour < 22) return '晚上好 🌆';
-  return '夜深了 🌙';
+  if (hour < 6)  return '夜深了';
+  if (hour < 9)  return '早上好';
+  if (hour < 12) return '上午好';
+  if (hour < 14) return '中午好';
+  if (hour < 18) return '下午好';
+  if (hour < 22) return '晚上好';
+  return '夜深了';
 }
 
 function tick() {
   const now = new Date();
-  elTime.textContent = formatTime(now);
+  const { hm, sec } = formatTime(now);
+  elHm.textContent = hm;
+  elSec.textContent = sec;
   elDate.textContent = formatDate(now);
   elGreeting.textContent = getGreeting(now.getHours());
 }
