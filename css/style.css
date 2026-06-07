@@ -157,6 +157,7 @@ body::before {
   line-height: 0.85;
   color: var(--text-primary);
   user-select: none;
+  position: relative;
 }
 
 [data-theme="dark"] .time {
@@ -164,11 +165,15 @@ body::before {
 }
 
 .time-sec {
+  position: absolute;
+  left: 100%;
+  top: 0;
   font-size: 0.3em;
   font-weight: 400;
   color: var(--text-muted);
-  vertical-align: super;
+  line-height: 1;
   margin-left: 0.1em;
+  white-space: nowrap;
 }
 
 [data-theme="dark"] .time-sec {
