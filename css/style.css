@@ -186,7 +186,7 @@ body::before {
   font-size: clamp(0.9375rem, 1.8vw, 1.2rem);
   font-style: italic;
   color: var(--text-secondary);
-  margin-top: 2rem;
+  margin-top: calc(2rem);
   margin-bottom: 2.5rem;
   user-select: none;
 }
@@ -919,7 +919,7 @@ body::before {
 }
 
 .hero-stage.pomodoro-active .pomodoro-face {
-  transform: rotateY(0deg);
+  transform: rotateY(0deg) translateY(-22px);
   opacity: 1;
 }
 
