@@ -20,6 +20,9 @@ start newtab.html    # Windows
 
 无构建命令、无测试框架、无 lint 配置。这是一个纯静态 HTML+CSS+JS 项目。
 
+> ⚠️ `start newtab.html`（Windows）或 `open newtab.html`（macOS）在 Chrome 下无法加载 ES Modules（`file://` CORS 限制），页面空白属于正常现象。
+> 调试预览请使用 HTTP 服务器（如 `npx serve .`、`python -m http.server`、`npx live-server`），或直接在扩展模式加载。
+
 ## Architecture
 
 ```
@@ -61,4 +64,4 @@ manifest.json        ← Manifest V3
 - **弹窗**：使用原生 `<dialog>` + `showModal()` / `close()`，backdrop 点击即关闭
 - **动画**：纯 CSS animation（搜索引擎下拉的 fade in/out），无 JS 动画库
 - **图标**：搜索引擎用本地 SVG（`icons/` 目录）；快捷链接用 `simpleicons.org` CDN，深色模式传浅色 hex 参数
-- **时钟同步**：`setInterval(tick, 1000)` 对齐到下一整秒启动，避免偏移
+- **时钟**：`setInterval(tick, 1000)` 对齐下一整秒启动避免 JS 偏移；CSS 层面 `.time-sec` 用 `position: absolute` 脱离布局流，避免秒数字比例宽度波动导致 `.time` 整宽变化 → flex 重居中产生左右漂移（参考 qiaomu-tab 单元素时钟结构）
