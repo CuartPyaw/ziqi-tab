@@ -870,57 +870,34 @@ body::before {
    Pomodoro Timer — Inline Clock Replacement
    ═══════════════════════════════════════════ */
 
-/* ── 3D Stage ─────────────────────────── */
+/* ── Stage (Animate.css fade swap) ──────── */
 
 .hero-stage {
   position: relative;
   width: 100%;
-  perspective: 1200px;
+  overflow-x: hidden;  /* clip Animate.css fade overshoot → no horizontal scrollbar flash */
+  /* Animate.css speed — matches the original 0.55s flip duration */
+  --animate-duration: 0.55s;
 }
 
-/* Both panels share the same space */
-#clock-display,
-.pomodoro-face {
-  backface-visibility: hidden;
-  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Restore shrink-wrap centering for clock children
-   (lost when .hero-stage wrapper was introduced for 3D card-flip) */
+/* Clock: shrink-wrap centering */
 #clock-display {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* Default: clock visible, pomodoro waiting on the right (rotated away) */
-#clock-display {
-  transform: rotateY(0deg);
-  opacity: 1;
-}
-
+/* Pomodoro face: absolute overlay, hidden by default.
+   Opacity and pointer-events managed by JS inline styles
+   after each animation completes. */
 .pomodoro-face {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
   position: absolute;
-  top: 0;
+  top: -12px;
   left: 0;
-  transform: rotateY(90deg);
-  opacity: 0;
-}
-
-/* Active: clock rotates out left, pomodoro rotates in */
-.hero-stage.pomodoro-active #clock-display {
-  transform: rotateY(-90deg);
-  opacity: 0;
-}
-
-.hero-stage.pomodoro-active .pomodoro-face {
-  transform: rotateY(0deg) translateY(-22px);
-  opacity: 1;
 }
 
 /* ── Massive Typographic Timer ──────────── */

@@ -94,7 +94,8 @@ function render() {
     const src = iconUrl(link);
     img.src = src || '';
     img.alt = '';
-    img.loading = 'lazy';
+    // 图标是小型 SVG，eager 加载避免延迟
+    img.loading = 'eager';
 
     // Fallback on error: use first letter of title
     img.onerror = ((lnk) => () => {
@@ -237,6 +238,17 @@ export function initLinks() {
     closeDialog();
   });
 
-  // Re-render when theme changes (updates icon colors)
-  window.addEventListener('theme-changed', render);
+  // Theme change: 只更新图标 src，避免完全重建 DOM（已加载的图标会闪一下）
+  window.addEventListener('theme-changed', () => {
+    document.querySelectorAll('.link-item img').forEach((img) => {
+      const a = img.closest('.link-item');
+      const id = a?.getAttribute('data-id');
+      const link = links.find((l) => l.id === id);
+      if (link) {
+        const newSrc = iconUrl(link);
+        // 只有 URL 真正变化（如 GitHub 切换配色）才更新 src
+        if (newSrc && newSrc !== img.src) img.src = newSrc;
+      }
+    });
+  });
 }

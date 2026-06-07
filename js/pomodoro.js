@@ -42,6 +42,7 @@ let state = {
 
 let config = { ...DEFAULTS };
 let timerId = null;
+let transitioning = false;
 
 // ── DOM References ────────────────────────
 
@@ -231,19 +232,103 @@ function complete() {
 // ── Face Toggle ───────────────────────────
 
 /**
+ * Animate two panels in opposite directions using Animate.css.
+ *
+ * @param {HTMLElement} outEl    — Element exiting (fade out).
+ * @param {string}      outClass — Animate.css exit class (e.g. 'animate__fadeOutLeft').
+ * @param {HTMLElement} inEl     — Element entering (fade in).
+ * @param {string}      inClass  — Animate.css enter class (e.g. 'animate__fadeInRight').
+ * @param {Function}    onDone   — Called when both animations finish.
+ */
+function runTransition(outEl, outClass, inEl, inClass, onDone) {
+  const ANIM_CLASSES = [
+    'animate__animated',
+    'animate__fadeInLeft', 'animate__fadeInRight',
+    'animate__fadeOutLeft', 'animate__fadeOutRight',
+  ];
+
+  let completed = 0;
+  let settled = false;
+
+  function finish() {
+    if (settled) return;
+    settled = true;
+
+    // Remove all Animate.css classes from both elements
+    outEl.classList.remove(...ANIM_CLASSES);
+    inEl.classList.remove(...ANIM_CLASSES);
+
+    // Set final inline styles: outEl hidden, inEl visible
+    outEl.style.opacity = '0';
+    outEl.style.pointerEvents = 'none';
+    outEl.style.transform = '';
+
+    inEl.style.opacity = '1';
+    inEl.style.pointerEvents = 'auto';
+    inEl.style.transform = '';
+
+    onDone();
+  }
+
+  // Listen for animationend on both elements (once each)
+  outEl.addEventListener('animationend', () => { completed++; if (completed >= 2) finish(); }, { once: true });
+  inEl.addEventListener('animationend',  () => { completed++; if (completed >= 2) finish(); }, { once: true });
+
+  // Safety timeout: ensure we never stay locked
+  setTimeout(() => { if (!settled) finish(); }, 1200);
+
+  // Reset inline styles so animation `from` keyframes match current render state
+  outEl.style.opacity = '1';
+  outEl.style.pointerEvents = '';
+  outEl.style.transform = '';
+
+  inEl.style.opacity = '0';
+  inEl.style.pointerEvents = 'none';
+  inEl.style.transform = '';
+
+  // Force reflow so the browser picks up the inline changes before adding classes
+  void outEl.offsetWidth;
+
+  // Trigger both animations simultaneously
+  outEl.classList.add('animate__animated', outClass);
+  inEl.classList.add('animate__animated', inClass);
+}
+
+/**
  * Toggle between clock display and pomodoro face.
- * Showing the face hides the clock; hiding the face stops any running timer.
+ * Uses Animate.css fade swap instead of the previous 3D card-flip.
  */
 function toggleFace() {
-  state.faceVisible = !state.faceVisible;
-  if (state.faceVisible) {
-    elStage.classList.add('pomodoro-active');
+  if (transitioning) return;
+  transitioning = true;
+
+  const showPomodoro = !state.faceVisible;
+  state.faceVisible = showPomodoro;
+
+  if (showPomodoro) {
+    // Clock exits left, pomodoro enters from right
+    runTransition(
+      elClockDisplay, 'animate__fadeOutLeft',
+      elPomodoroFace, 'animate__fadeInRight',
+      () => {
+        elStage.classList.add('pomodoro-active');
+        transitioning = false;
+      }
+    );
   } else {
-    // Stop timer and reset when closing
+    // Stop timer and reset when closing (before the visual transition)
     if (state.phase !== PHASE.IDLE) {
       handleReset();
     }
-    elStage.classList.remove('pomodoro-active');
+    // Pomodoro exits right, clock enters from left
+    runTransition(
+      elPomodoroFace, 'animate__fadeOutRight',
+      elClockDisplay, 'animate__fadeInLeft',
+      () => {
+        elStage.classList.remove('pomodoro-active');
+        transitioning = false;
+      }
+    );
   }
 }
 
@@ -384,4 +469,9 @@ export function initPomodoro() {
 
   // Initial display (hidden — user clicks button to show)
   updateAllDisplay();
+
+  // Initial visual state: clock visible, pomodoro hidden
+  elClockDisplay.style.opacity = '1';
+  elPomodoroFace.style.opacity = '0';
+  elPomodoroFace.style.pointerEvents = 'none';
 }
