@@ -95,4 +95,15 @@ export function initSettings() {
     e.preventDefault();
     handleCancel();
   });
+
+  // ── Category tabs ──────────────────────────
+
+  document.querySelectorAll('.settings-category').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.settings-category').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.settings-section').forEach((s) => { s.hidden = true; });
+      document.querySelector(`.settings-section[data-category="${btn.dataset.category}"]`).hidden = false;
+    });
+  });
 }

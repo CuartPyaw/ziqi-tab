@@ -26,7 +26,7 @@ start newtab.html    # Windows
 ## Architecture
 
 ```
-newtab.html          ← 唯一页面入口，含全部 DOM 骨架 + 两个 <dialog>
+newtab.html          ← 唯一页面入口，含全部 DOM 骨架 + 两个 <dialog> + 番茄钟内联面板
 css/style.css        ← 全部样式，CSS 变量驱动主题，不含外部字体
 js/
   app.js             ← 入口，按序初始化所有模块
@@ -35,6 +35,7 @@ js/
   search.js          ← 搜索栏 + 引擎下拉切换（Google/Bing/DuckDuckGo）
   links.js           ← 快捷链接网格：CRUD 弹窗，Simple Icons 图标
   settings.js        ← 设置面板：搜索栏宽度滑块控制
+  pomodoro.js        ← 番茄钟：内联时钟替换式，巨大衬线数字 + 极简控制
 icons/               ← 搜索引擎本地 SVG 图标
 manifest.json        ← Manifest V3
 ```

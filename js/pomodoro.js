@@ -1,7 +1,8 @@
 /**
- * Pomodoro Timer — 番茄钟模块
- * 经典 25min 专注 + 5min 短休息，每 4 个番茄一次 15min 长休息。
- * 状态不持久化（关闭标签页即重置），仅持久化时长配置。
+ * Pomodoro Timer — 番茄钟模块（内联时钟替换式）
+ * 仿 qiaomu-tab 设计：巨大衬线数字 + 极简控制（模式药丸 + 播放/暂停 + 重置）。
+ * 番茄钟面板与时钟共享同一视觉空间，通过 #pomodoro-toggle 按钮切换。
+ * 状态不持久化（关闭番茄钟面板即重置），仅持久化时长配置。
  */
 
 const STORAGE_KEY = 'ziqi-pomodoro';
@@ -21,13 +22,11 @@ const PHASE = {
 };
 
 const PHASE_LABELS = {
+  [PHASE.IDLE]: '准备',
   [PHASE.WORK]: '专注',
   [PHASE.SHORT_BREAK]: '短休息',
   [PHASE.LONG_BREAK]: '长休息',
 };
-
-const RING_RADIUS = 52;
-const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS; // ≈ 326.73
 
 // ── Runtime State ─────────────────────────
 
@@ -38,6 +37,7 @@ let state = {
   sessionCount: 0,
   cycleWorkCount: 0,
   isPaused: false,
+  faceVisible: false,
 };
 
 let config = { ...DEFAULTS };
@@ -45,12 +45,17 @@ let timerId = null;
 
 // ── DOM References ────────────────────────
 
-let elTimer, elPhase, elRingFill, elSessions;
-let elStart, elPause, elResume, elStop, elSkip;
+let elStage;
+let elClockDisplay;
+let elPomodoroFace;
+let elTimerBig;
+let elPhaseLabel;
+let elSessions;
+let elPlay;
+let elReset;
+let elModeFocus;
+let elModeBreak;
 let elWork, elShort, elLong, elInterval;
-
-/** The root container used for completion flash */
-let elContainer;
 
 // ── Config Persistence ────────────────────
 
@@ -85,12 +90,11 @@ function formatTime(sec) {
 }
 
 function updateDisplay() {
-  elTimer.textContent = formatTime(state.remaining);
-  elRingFill.style.strokeDashoffset = CIRCUMFERENCE * (1 - state.remaining / state.total);
+  elTimerBig.textContent = formatTime(state.remaining);
 }
 
 function updatePhaseLabel() {
-  elPhase.textContent = PHASE_LABELS[state.phase] || '';
+  elPhaseLabel.textContent = PHASE_LABELS[state.phase] || '';
 }
 
 function updateSessionDots() {
@@ -101,23 +105,28 @@ function updateSessionDots() {
   });
 }
 
-function updateControlButtons() {
-  const isIdle = state.phase === PHASE.IDLE;
-  const isRunning = !isIdle && !state.isPaused;
-  const isPaused = !isIdle && state.isPaused;
+function updatePlayButton() {
+  if (state.phase === PHASE.IDLE || state.isPaused) {
+    elPlay.innerHTML = '&#9654;';   // ▶
+    elPlay.title = '开始';
+  } else {
+    elPlay.innerHTML = '&#9208;';   // ⏸
+    elPlay.title = '暂停';
+  }
+}
 
-  elStart.hidden = !isIdle;
-  elPause.hidden = !isRunning;
-  elResume.hidden = !isPaused;
-  elStop.hidden = isIdle;
-  elSkip.hidden = isIdle;
+function updateModePills() {
+  const isBreakPhase = state.phase === PHASE.SHORT_BREAK || state.phase === PHASE.LONG_BREAK;
+  elModeFocus.classList.toggle('is-active', !isBreakPhase);
+  elModeBreak.classList.toggle('is-active', isBreakPhase);
 }
 
 function updateAllDisplay() {
   updateDisplay();
   updatePhaseLabel();
   updateSessionDots();
-  updateControlButtons();
+  updateModePills();
+  updatePlayButton();
 }
 
 // ── Notifications ─────────────────────────
@@ -139,14 +148,12 @@ function playBeep() {
 }
 
 function notifyCompletion() {
-  // Flash container border
-  elContainer.classList.add('pomodoro-flash');
-  setTimeout(() => elContainer.classList.remove('pomodoro-flash'), 1600);
+  // Flash the big timer text colour
+  elTimerBig.classList.add('pomodoro-flash');
+  setTimeout(() => elTimerBig.classList.remove('pomodoro-flash'), 1800);
 
-  // Beep
   playBeep();
 
-  // Browser notification
   if (Notification.permission === 'granted') {
     const label = PHASE_LABELS[state.phase] || '阶段';
     new Notification('番茄钟', {
@@ -160,10 +167,6 @@ function notifyCompletion() {
 
 // ── Timer Engine ──────────────────────────
 
-/**
- * 启动倒计时，使用 setTimeout 对齐到下一整秒。
- * 参考 clock.js 的整秒对齐模式。
- */
 function startTimer() {
   stopTimer();
   const ms = 1000 - (Date.now() % 1000);
@@ -190,7 +193,7 @@ function tick() {
   }
 }
 
-// ── State Machine ― Phase Transitions ────
+// ── State Machine — Phase Transitions ─────
 
 function transitionTo(phase, totalSec) {
   state.phase = phase;
@@ -220,56 +223,106 @@ function complete() {
     transitionTo(PHASE.WORK, config.work * 60);
   }
 
-  updateControlButtons();
+  updateModePills();
+  updatePlayButton();
   startTimer();
+}
+
+// ── Face Toggle ───────────────────────────
+
+/**
+ * Toggle between clock display and pomodoro face.
+ * Showing the face hides the clock; hiding the face stops any running timer.
+ */
+function toggleFace() {
+  state.faceVisible = !state.faceVisible;
+  if (state.faceVisible) {
+    elStage.classList.add('pomodoro-active');
+  } else {
+    // Stop timer and reset when closing
+    if (state.phase !== PHASE.IDLE) {
+      handleReset();
+    }
+    elStage.classList.remove('pomodoro-active');
+  }
 }
 
 // ── Controls ──────────────────────────────
 
-function handleStart() {
-  transitionTo(PHASE.WORK, config.work * 60);
-  state.sessionCount = 0;
-  state.cycleWorkCount = 0;
-  updateSessionDots();
-  updateControlButtons();
-  startTimer();
+function handlePlayPause() {
+  if (state.phase === PHASE.IDLE) {
+    // Determine starting mode from active pill
+    const activePill = elPomodoroFace.querySelector('.pomodoro-mode-btn.is-active');
+    const mode = activePill ? activePill.dataset.mode : 'focus';
+    if (mode === 'focus') {
+      transitionTo(PHASE.WORK, config.work * 60);
+    } else {
+      transitionTo(PHASE.SHORT_BREAK, config.shortBreak * 60);
+    }
+    state.sessionCount = 0;
+    state.cycleWorkCount = 0;
+    updateSessionDots();
+    updateModePills();
+    updatePlayButton();
+    startTimer();
+  } else if (state.isPaused) {
+    state.isPaused = false;
+    updatePlayButton();
+    startTimer();
+  } else {
+    // Running — pause
+    state.isPaused = true;
+    stopTimer();
+    updatePlayButton();
+  }
 }
 
-function handlePause() {
-  state.isPaused = true;
-  stopTimer();
-  updateControlButtons();
-}
-
-function handleResume() {
-  state.isPaused = false;
-  updateControlButtons();
-  startTimer();
-}
-
-function handleStop() {
+function handleReset() {
   stopTimer();
   state.phase = PHASE.IDLE;
-  state.remaining = config.work * 60;
-  state.total = config.work * 60;
-  state.isPaused = false;
   state.sessionCount = 0;
   state.cycleWorkCount = 0;
-  updateSessionDots();
-  updateControlButtons();
-  updateDisplay();
+
+  // Set remaining to the currently selected mode pill's duration
+  const activePill = elPomodoroFace.querySelector('.pomodoro-mode-btn.is-active');
+  const mode = activePill ? activePill.dataset.mode : 'focus';
+  state.remaining = mode === 'focus' ? config.work * 60 : config.shortBreak * 60;
+  state.total = state.remaining;
+  state.isPaused = false;
+  updateAllDisplay();
 }
 
-function handleSkip() {
-  stopTimer();
-  if (state.phase === PHASE.WORK) {
-    transitionTo(PHASE.SHORT_BREAK, config.shortBreak * 60);
-  } else {
-    transitionTo(PHASE.WORK, config.work * 60);
+function handleModeSwitch(mode) {
+  // Update active pill
+  elModeFocus.classList.toggle('is-active', mode === 'focus');
+  elModeBreak.classList.toggle('is-active', mode === 'shortBreak');
+
+  // Stop any running timer
+  if (state.phase !== PHASE.IDLE) {
+    stopTimer();
   }
-  updateSessionDots();
-  updateControlButtons();
-  startTimer();
+
+  // Reset to idle with new mode's duration
+  state.phase = PHASE.IDLE;
+  state.isPaused = false;
+  if (mode === 'focus') {
+    state.remaining = config.work * 60;
+    state.total = config.work * 60;
+  } else {
+    state.remaining = config.shortBreak * 60;
+    state.total = config.shortBreak * 60;
+  }
+
+  // Reset session tracking when switching to focus (new work cycle)
+  if (mode === 'focus') {
+    state.sessionCount = 0;
+    state.cycleWorkCount = 0;
+  } else {
+    // Switching to break from idle — keep session dots as they were
+    state.sessionCount = 0;
+  }
+
+  updateAllDisplay();
 }
 
 // ── Init Entry ────────────────────────────
@@ -277,7 +330,19 @@ function handleSkip() {
 export function initPomodoro() {
   config = loadConfig();
 
-  // Set config inputs to stored values
+  // DOM refs
+  elStage = document.querySelector('.hero-stage');
+  elClockDisplay = document.getElementById('clock-display');
+  elPomodoroFace = document.getElementById('pomodoro-face');
+  elTimerBig = document.getElementById('pomodoro-timer-big');
+  elPhaseLabel = document.getElementById('pomodoro-phase-label');
+  elSessions = document.getElementById('pomodoro-sessions');
+  elPlay = document.getElementById('pomodoro-play');
+  elReset = document.getElementById('pomodoro-reset');
+  elModeFocus = elPomodoroFace.querySelector('[data-mode="focus"]');
+  elModeBreak = elPomodoroFace.querySelector('[data-mode="shortBreak"]');
+
+  // Config inputs — restore stored values
   elWork = document.getElementById('pomo-work');
   elShort = document.getElementById('pomo-short-break');
   elLong = document.getElementById('pomo-long-break');
@@ -288,7 +353,7 @@ export function initPomodoro() {
   elLong.value = config.longBreak;
   elInterval.value = config.longInterval;
 
-  // Save config on change
+  // Config change → save + update idle display
   [elWork, elShort, elLong, elInterval].forEach((input) => {
     input.addEventListener('change', () => {
       config.work = parseInt(elWork.value, 10) || DEFAULTS.work;
@@ -297,34 +362,26 @@ export function initPomodoro() {
       config.longInterval = parseInt(elInterval.value, 10) || DEFAULTS.longInterval;
       saveConfig();
 
-      // If IDLE, reset display to new work duration
+      // If idle, reset display to current mode's duration
       if (state.phase === PHASE.IDLE) {
-        state.remaining = config.work * 60;
-        state.total = config.work * 60;
+        const activePill = elPomodoroFace.querySelector('.pomodoro-mode-btn.is-active');
+        const mode = activePill ? activePill.dataset.mode : 'focus';
+        state.remaining = mode === 'focus' ? config.work * 60 : config.shortBreak * 60;
+        state.total = state.remaining;
         updateDisplay();
       }
     });
   });
 
-  // DOM refs
-  elContainer = document.querySelector('.pomodoro-container');
-  elTimer = document.getElementById('pomodoro-timer');
-  elPhase = document.getElementById('pomodoro-phase');
-  elRingFill = document.getElementById('pomodoro-ring-fill');
-  elSessions = document.getElementById('pomodoro-sessions');
-  elStart = document.getElementById('pomodoro-start');
-  elPause = document.getElementById('pomodoro-pause');
-  elResume = document.getElementById('pomodoro-resume');
-  elStop = document.getElementById('pomodoro-stop');
-  elSkip = document.getElementById('pomodoro-skip');
+  // Toggle button (bottom-right settings bar)
+  document.getElementById('pomodoro-toggle').addEventListener('click', toggleFace);
 
-  // Control buttons
-  elStart.addEventListener('click', handleStart);
-  elPause.addEventListener('click', handlePause);
-  elResume.addEventListener('click', handleResume);
-  elStop.addEventListener('click', handleStop);
-  elSkip.addEventListener('click', handleSkip);
+  // Control events
+  elPlay.addEventListener('click', handlePlayPause);
+  elReset.addEventListener('click', handleReset);
+  elModeFocus.addEventListener('click', () => handleModeSwitch('focus'));
+  elModeBreak.addEventListener('click', () => handleModeSwitch('shortBreak'));
 
-  // Initial display
+  // Initial display (hidden — user clicks button to show)
   updateAllDisplay();
 }

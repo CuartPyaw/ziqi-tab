@@ -9,11 +9,35 @@
 <body>
   <div class="container">
     <header class="hero">
-      <div class="day-row">
-        <span id="date">----年--月--日</span>
+      <div class="hero-stage">
+        <div id="clock-display">
+          <div class="day-row">
+            <span id="date">----年--月--日</span>
+          </div>
+          <div class="time" id="time"><span id="time-hm">--:--</span><span id="time-sec" class="time-sec">:--</span></div>
+          <p class="moment-line" id="greeting">--</p>
+        </div>
+
+        <div id="pomodoro-face" class="pomodoro-face">
+        <time class="pomodoro-timer-big" id="pomodoro-timer-big">25:00</time>
+        <p class="pomodoro-phase-label" id="pomodoro-phase-label">准备</p>
+        <div class="pomodoro-sessions" id="pomodoro-sessions">
+          <span class="pomodoro-dot" data-n="1"></span>
+          <span class="pomodoro-dot" data-n="2"></span>
+          <span class="pomodoro-dot" data-n="3"></span>
+          <span class="pomodoro-dot" data-n="4"></span>
+        </div>
+        <div class="pomodoro-tools">
+          <div class="pomodoro-modes">
+            <button class="pomodoro-mode-btn is-active" data-mode="focus">25</button>
+            <button class="pomodoro-mode-btn" data-mode="shortBreak">5</button>
+          </div>
+          <button id="pomodoro-play" class="pomodoro-tool-btn" title="开始">&#9654;</button>
+          <button id="pomodoro-reset" class="pomodoro-tool-btn" title="重置">&#8634;</button>
+        </div>
+        </div>
       </div>
-      <div class="time" id="time"><span id="time-hm">--:--</span><span id="time-sec" class="time-sec">:--</span></div>
-      <p class="moment-line" id="greeting">--</p>
+
       <div class="search-wrapper">
         <div class="search-bar" id="search-bar">
           <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -106,6 +130,7 @@
       <div class="settings-layout">
         <nav class="settings-nav">
           <button type="button" class="settings-category active" data-category="search">搜索</button>
+          <button type="button" class="settings-category" data-category="pomodoro">番茄钟</button>
         </nav>
         <div class="settings-content">
           <div class="settings-section" data-category="search">
@@ -114,6 +139,26 @@
               <input type="range" id="search-width" class="settings-slider" min="360" max="720" value="520" step="10">
               <span class="settings-value" id="search-width-value">520px</span>
             </div>
+          </div>
+          <div class="settings-section" data-category="pomodoro" hidden>
+            <h3 class="settings-section-title">番茄钟</h3>
+
+            <label class="dialog-label">
+              专注时长
+              <input type="number" id="pomo-work" class="dialog-input" min="1" max="90" value="25"> 分钟
+            </label>
+            <label class="dialog-label">
+              短休息
+              <input type="number" id="pomo-short-break" class="dialog-input" min="1" max="30" value="5"> 分钟
+            </label>
+            <label class="dialog-label">
+              长休息
+              <input type="number" id="pomo-long-break" class="dialog-input" min="1" max="60" value="15"> 分钟
+            </label>
+            <label class="dialog-label">
+              间隔（几个番茄后长休息）
+              <input type="number" id="pomo-long-interval" class="dialog-input" min="2" max="10" value="4"> 个
+            </label>
           </div>
         </div>
       </div>
