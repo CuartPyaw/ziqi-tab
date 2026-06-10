@@ -121,6 +121,8 @@ body::before {
   padding: 2rem;
   width: 100%;
   max-width: 720px;
+  --animate-duration: 0.7s;
+  visibility: hidden;
 }
 
 /* ── Hero Section ─────────────────────── */

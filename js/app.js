@@ -33,4 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleTheme();
     window.dispatchEvent(new CustomEvent('theme-changed'));
   });
+
+  // 8. 新标签页打开动画 — bounceInUp
+  const container = document.querySelector('.container');
+  container.style.visibility = 'visible';
+  container.classList.add('animate__animated', 'animate__bounceInUp');
 });
