@@ -1,0 +1,77 @@
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 3rem;
+}
+
+/* Date row (above clock, qiaomu-tab inspired) */
+.day-row {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(0.8125rem, 1.4vw, 1rem);
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  user-select: none;
+}
+
+[data-theme="dark"] .day-row {
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+}
+
+/* Time — serif display clock (qiaomu-tab inspired) */
+.time {
+  font-family: Didot, "Bodoni 72", "Bodoni 72 Display", Georgia, "Songti SC", serif;
+  font-size: clamp(3.5rem, 14vw, 9rem);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 0.85;
+  color: var(--text-primary);
+  user-select: none;
+  position: relative;
+}
+
+[data-theme="dark"] .time {
+  text-shadow: 0 8px 32px rgba(0, 0, 0, 0.42);
+}
+
+.time-sec {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  font-size: 0.3em;
+  font-weight: 400;
+  color: var(--text-muted);
+  line-height: 1;
+  margin-left: 0.1em;
+  white-space: nowrap;
+}
+
+[data-theme="dark"] .time-sec {
+  text-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* Moment line (greeting below clock, qiaomu-tab inspired) */
+.moment-line {
+  font-family: Didot, "Bodoni 72", "Bodoni 72 Display", Georgia, "Songti SC", serif;
+  font-size: clamp(0.9375rem, 1.8vw, 1.2rem);
+  font-style: italic;
+  color: var(--text-secondary);
+  margin-top: calc(2rem);
+  margin-bottom: 2.5rem;
+  user-select: none;
+}
+
+[data-theme="dark"] .moment-line {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+}
+
+/* ── Responsive ───────────────────────── */
+
+@media (max-width: 600px) {
+  .moment-line {
+    margin-bottom: 1.75rem;
+  }
+}
