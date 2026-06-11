@@ -1,0 +1,138 @@
+/* ═══════════════════════════════════════════
+   Ziqi Tab — 暖调素纸风格
+   ═══════════════════════════════════════════ */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ── Theme Tokens ─────────────────────── */
+
+:root {
+  --paper:        #faf5ef;
+  --paper-dark:   #ede5d8;
+  --surface:      #ffffff;
+  --surface-hover:#f8f5f0;
+  --text-primary: #3d3529;
+  --text-secondary: #8c8276;
+  --text-muted:   #b8afa4;
+  --border:       #e0d8cc;
+  --border-focus: #b8956a;
+  --accent:       #b8956a;
+  --accent-hover: #a07c54;
+  --shadow-sm:    0 1px 3px rgba(61, 53, 41, 0.08);
+  --shadow-md:    0 4px 16px rgba(61, 53, 41, 0.10);
+  --shadow-lg:    0 8px 32px rgba(61, 53, 41, 0.12);
+
+  /* paper fiber texture — barely visible horizontal & vertical lines */
+  --texture-opacity: 1;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+
+  --font: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", sans-serif;
+}
+
+/* ── Dark Theme ───────────────────────── */
+
+[data-theme="dark"] {
+  --paper:        #2c241b;
+  --paper-dark:   #3a3026;
+  --surface:      #3a3026;
+  --surface-hover:#453a2f;
+  --text-primary: #e8dcc8;
+  --text-secondary: #a09688;
+  --text-muted:   #6b6054;
+  --border:       #4a4036;
+  --border-focus: #c9a878;
+  --accent:       #c9a878;
+  --accent-hover: #d4b888;
+  --shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.20);
+  --shadow-md:    0 4px 16px rgba(0, 0, 0, 0.30);
+  --shadow-lg:    0 8px 32px rgba(0, 0, 0, 0.40);
+
+  --texture-opacity: 0.4;
+}
+
+/* ── Base ─────────────────────────────── */
+
+html {
+  font-family: var(--font);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: var(--paper);
+  background-image:
+    /* horizontal fiber */
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 1px,
+      rgba(139, 119, 90, calc(0.025 * var(--texture-opacity))) 1px,
+      rgba(139, 119, 90, calc(0.025 * var(--texture-opacity))) 2px
+    ),
+    /* vertical fiber */
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 1px,
+      rgba(139, 119, 90, calc(0.015 * var(--texture-opacity))) 1px,
+      rgba(139, 119, 90, calc(0.015 * var(--texture-opacity))) 2px
+    );
+
+  color: var(--text-primary);
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 0%, var(--paper-dark) 0%, transparent 60%);
+  opacity: 0.3;
+  z-index: 0;
+}
+
+/* ── Container ────────────────────────── */
+
+.container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  width: 100%;
+  max-width: 720px;
+  --animate-duration: 0.7s;
+  visibility: hidden;
+}
+
+/* ── Shared Keyframes ─────────────────── */
+
+@keyframes dialog-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
