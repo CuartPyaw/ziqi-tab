@@ -85,7 +85,7 @@ document.body.innerHTML = `
       </div>
 
       <div id="pomodoro-face" class="pomodoro-face">
-        <time class="pomodoro-timer-big" id="pomodoro-timer-big">25:00</time>
+        <time class="pomodoro-timer-big" id="pomodoro-timer-big" data-time="25:00"><span class="pomo-d"><span class="pomo-v">2</span></span><span class="pomo-d"><span class="pomo-v">5</span></span><span class="pomo-sep">:</span><span class="pomo-d"><span class="pomo-v">0</span></span><span class="pomo-d"><span class="pomo-v">0</span></span></time>
         <p class="pomodoro-phase-label" id="pomodoro-phase-label">准备</p>
         <div class="pomodoro-sessions" id="pomodoro-sessions">
           <span class="pomodoro-dot" data-n="1"></span>

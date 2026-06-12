@@ -918,6 +918,31 @@ body::before {
   text-shadow: 0 8px 32px rgba(0, 0, 0, 0.42);
 }
 
+/* ── Flip-digit containers ─── */
+.pomo-d {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+}
+.pomo-v {
+  display: block;
+}
+.pomo-sep {
+  display: inline-block;
+  vertical-align: top;
+}
+
+@keyframes pomo-exit {
+  from { transform: translateY(0);     opacity: 1; }
+  to   { transform: translateY(-115%); opacity: 0; }
+}
+@keyframes pomo-enter {
+  from { transform: translateY(115%);  opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+.pomo-v.pomo-exiting  { animation: pomo-exit  0.28s ease-in  forwards; }
+.pomo-v.pomo-entering { animation: pomo-enter 0.28s ease-out 0.12s both; }
+
 /* ── Phase Label ────────────────────────── */
 
 .pomodoro-phase-label {

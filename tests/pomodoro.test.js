@@ -51,7 +51,7 @@ function setPomoConfig(work, shortBreak, longBreak, longInterval) {
 describe('initial state', () => {
   it('shows default work duration and idle label', () => {
     initPomo();
-    expect(document.getElementById('pomodoro-timer-big').textContent).toBe('25:00');
+    expect(document.getElementById('pomodoro-timer-big').dataset.time).toBe('25:00');
     expect(document.getElementById('pomodoro-phase-label').textContent).toBe('准备');
   });
 
@@ -73,7 +73,7 @@ describe('initial state', () => {
   it('restores saved config on init', () => {
     localStorage.setItem('ziqi-pomodoro', JSON.stringify({ work: 15, shortBreak: 3, longBreak: 10, longInterval: 2 }));
     initPomo();
-    expect(document.getElementById('pomodoro-timer-big').textContent).toBe('15:00');
+    expect(document.getElementById('pomodoro-timer-big').dataset.time).toBe('15:00');
     expect(document.getElementById('pomo-work').value).toBe('15');
   });
 });
@@ -95,7 +95,7 @@ describe('play / pause', () => {
     // Alignment = 1000ms (Date.now() % 1000 == 0), so 1st tick at 1000ms,
     // 2nd tick at 2000ms.  advanceTimersByTime(2000) fires both.
     vi.advanceTimersByTime(2000);
-    expect(document.getElementById('pomodoro-timer-big').textContent).toBe('00:58');
+    expect(document.getElementById('pomodoro-timer-big').dataset.time).toBe('00:58');
   });
 
   it('pauses and shows play button', () => {
@@ -108,10 +108,10 @@ describe('play / pause', () => {
     document.getElementById('pomodoro-play').click();
     expect(document.getElementById('pomodoro-play').innerHTML).toContain('▶');
 
-    const display = document.getElementById('pomodoro-timer-big').textContent;
+    const display = document.getElementById('pomodoro-timer-big').dataset.time;
     vi.advanceTimersByTime(3000);
     // Should NOT continue counting down
-    expect(document.getElementById('pomodoro-timer-big').textContent).toBe(display);
+    expect(document.getElementById('pomodoro-timer-big').dataset.time).toBe(display);
   });
 
   it('resumes after pause', () => {
@@ -129,7 +129,7 @@ describe('play / pause', () => {
 
     vi.advanceTimersByTime(2000);
     // Should have counted down 4 ticks total (2 before pause + 2 after)
-    expect(document.getElementById('pomodoro-timer-big').textContent).toBe('04:56');
+    expect(document.getElementById('pomodoro-timer-big').dataset.time).toBe('04:56');
   });
 });
 
@@ -142,7 +142,7 @@ describe('reset', () => {
     document.getElementById('pomodoro-reset').click();
 
     expect(document.getElementById('pomodoro-phase-label').textContent).toBe('准备');
-    expect(document.getElementById('pomodoro-timer-big').textContent).toBe('25:00');
+    expect(document.getElementById('pomodoro-timer-big').dataset.time).toBe('25:00');
     expect(document.getElementById('pomodoro-play').innerHTML).toContain('▶');
   });
 
@@ -152,9 +152,9 @@ describe('reset', () => {
     vi.advanceTimersByTime(2000);
     document.getElementById('pomodoro-reset').click();
 
-    const display = document.getElementById('pomodoro-timer-big').textContent;
+    const display = document.getElementById('pomodoro-timer-big').dataset.time;
     vi.advanceTimersByTime(3000);
-    expect(document.getElementById('pomodoro-timer-big').textContent).toBe(display);
+    expect(document.getElementById('pomodoro-timer-big').dataset.time).toBe(display);
   });
 });
 
@@ -166,7 +166,7 @@ describe('mode switch', () => {
     // handleModeSwitch sets phase to IDLE; updateModePills then highlights
     // focus (not break) because phase is IDLE.  The key assertion is the
     // timer display and label, not the pill classes.
-    expect(document.getElementById('pomodoro-timer-big').textContent).toBe('05:00');
+    expect(document.getElementById('pomodoro-timer-big').dataset.time).toBe('05:00');
     expect(document.getElementById('pomodoro-phase-label').textContent).toBe('准备');
   });
 
@@ -180,12 +180,12 @@ describe('mode switch', () => {
     document.querySelector('[data-mode="shortBreak"]').click();
 
     expect(document.getElementById('pomodoro-phase-label').textContent).toBe('准备');
-    expect(document.getElementById('pomodoro-timer-big').textContent).toBe('05:00');
+    expect(document.getElementById('pomodoro-timer-big').dataset.time).toBe('05:00');
     expect(document.getElementById('pomodoro-play').innerHTML).toContain('▶');
 
     // Timer should be stopped
     vi.advanceTimersByTime(3000);
-    expect(document.getElementById('pomodoro-timer-big').textContent).toBe('05:00');
+    expect(document.getElementById('pomodoro-timer-big').dataset.time).toBe('05:00');
   });
 });
 
@@ -201,7 +201,7 @@ describe('session completion', () => {
 
     // Should have transitioned to short break (duration = 1:00)
     expect(document.getElementById('pomodoro-phase-label').textContent).toBe('短休息');
-    expect(document.getElementById('pomodoro-timer-big').textContent).toBe('01:00');
+    expect(document.getElementById('pomodoro-timer-big').dataset.time).toBe('01:00');
 
     // First session dot should be filled
     const dot1 = document.querySelector('.pomodoro-dot[data-n="1"]');

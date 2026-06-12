@@ -57,6 +57,7 @@ let elReset;
 let elModeFocus;
 let elModeBreak;
 let elWork, elShort, elLong, elInterval;
+let elDigits = [];
 
 // ── Config Persistence ────────────────────
 
@@ -91,7 +92,26 @@ function formatTime(sec) {
 }
 
 function updateDisplay() {
-  elTimerBig.textContent = formatTime(state.remaining);
+  const time = formatTime(state.remaining);
+  elTimerBig.dataset.time = time;
+
+  const d = [time[0], time[1], time[3], time[4]]; // M0 M1 S0 S1，跳过冒号
+  d.forEach((newVal, i) => {
+    const cur = elDigits[i];
+    if (cur.textContent === newVal) return;
+
+    const next = cur.cloneNode(false);
+    next.textContent = newVal;
+    next.classList.add('pomo-entering');
+    cur.classList.add('pomo-exiting');
+    cur.parentElement.appendChild(next);
+
+    next.addEventListener('animationend', () => {
+      cur.remove();
+      next.classList.remove('pomo-entering');
+      elDigits[i] = next;
+    }, { once: true });
+  });
 }
 
 function updatePhaseLabel() {
@@ -420,6 +440,7 @@ export function initPomodoro() {
   elClockDisplay = document.getElementById('clock-display');
   elPomodoroFace = document.getElementById('pomodoro-face');
   elTimerBig = document.getElementById('pomodoro-timer-big');
+  elDigits = Array.from(elTimerBig.querySelectorAll('.pomo-v'));
   elPhaseLabel = document.getElementById('pomodoro-phase-label');
   elSessions = document.getElementById('pomodoro-sessions');
   elPlay = document.getElementById('pomodoro-play');
