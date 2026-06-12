@@ -7,7 +7,6 @@
 .hero-stage {
   position: relative;
   width: 100%;
-  overflow-x: hidden;  /* clip Animate.css fade overshoot → no horizontal scrollbar flash */
   /* Animate.css speed — matches the original 0.55s flip duration */
   --animate-duration: 0.55s;
 }
@@ -53,6 +52,7 @@
   display: inline-block;
   overflow: hidden;
   vertical-align: top;
+  line-height: 1;  /* override 0.85 from parent — prevents glyph clipping at box edges */
 }
 .pomo-v {
   display: block;
