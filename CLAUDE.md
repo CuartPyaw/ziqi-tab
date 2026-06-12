@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Ziqi Tab — 极简暖调素纸风格的 Chrome/Edge 新标签页扩展。零构建步骤，仅 Animate.css CDN 一个外部运行时依赖。
+Ziqi Tab — 极简暖调素纸风格的 Chrome/Edge 新标签页扩展。零构建步骤，外部运行时依赖：Animate.css CDN + Lora 字体（Google Fonts CDN）。
 
 ## Commands
 

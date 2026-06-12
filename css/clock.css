@@ -33,10 +33,11 @@
 
 /* Time — serif display clock (qiaomu-tab inspired) */
 .time {
-  font-family: Didot, "Bodoni 72", "Bodoni 72 Display", Georgia, "Songti SC", serif;
+  font-family: Lora, "LXGW WenKai GB Screen", Georgia, serif;
   font-size: clamp(3.5rem, 14vw, 9rem);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
   line-height: 0.85;
   color: var(--text-primary);
   user-select: none;
@@ -45,6 +46,12 @@
 
 [data-theme="dark"] .time {
   text-shadow: 0 8px 32px rgba(0, 0, 0, 0.42);
+}
+
+#time-hm {
+  display: inline-block;
+  min-width: 5ch;
+  text-align: center;
 }
 
 .time-sec {
@@ -65,7 +72,7 @@
 
 /* Moment line (greeting below clock, qiaomu-tab inspired) */
 .moment-line {
-  font-family: Didot, "Bodoni 72", "Bodoni 72 Display", Georgia, "Songti SC", serif;
+  font-family: Lora, "LXGW WenKai GB Screen", Georgia, serif;
   font-size: clamp(0.9375rem, 1.8vw, 1.2rem);
   font-style: italic;
   color: var(--text-secondary);

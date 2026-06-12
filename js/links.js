@@ -213,11 +213,58 @@ export function initLinks() {
   links = load();
   render();
 
-  // Double-click to edit
+  // Click with Dock bounce animation (intercept navigation to play animation first)
+  let clickTimer = null;
+
+  elGrid.addEventListener('click', (e) => {
+    // Only intercept primary-button left clicks without modifier keys.
+    // Middle-click, Ctrl/Cmd+click, Shift+click use default browser behavior.
+    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
+
+    const a = e.target.closest('.link-item');
+    if (!a || !a.href) return;
+    e.preventDefault();
+
+    // Double-click detection: second click cancels the pending bounce
+    if (clickTimer) {
+      clearTimeout(clickTimer);
+      clickTimer = null;
+      return;
+    }
+
+    const iconWrap = a.querySelector('.link-icon-wrapper');
+    if (!iconWrap) return;
+
+    const href = a.href;
+
+    const progressBar = document.getElementById('nav-progress');
+
+    clickTimer = setTimeout(() => {
+      clickTimer = null;
+      iconWrap.classList.add('bouncing');
+      if (progressBar) {
+        progressBar.style.width = '100%';
+        progressBar.addEventListener('transitionend', () => {
+          window.location.href = href;
+        }, { once: true });
+      } else {
+        iconWrap.addEventListener('animationend', () => {
+          iconWrap.classList.remove('bouncing');
+          window.location.href = href;
+        }, { once: true });
+      }
+    }, 200);
+  });
+
+  // Double-click to edit (fires between click events, prevents navigation)
   elGrid.addEventListener('dblclick', (e) => {
     const a = e.target.closest('.link-item');
     if (!a) return;
     e.preventDefault();
+    if (clickTimer) {
+      clearTimeout(clickTimer);
+      clickTimer = null;
+    }
     const id = a.getAttribute('data-id');
     if (id) openDialog(id);
   });
