@@ -73,22 +73,3 @@ describe('dialog', () => {
     expect(document.documentElement.style.getPropertyValue('--search-width')).toBe('600px');
   });
 });
-
-describe('category tabs', () => {
-  it('shows search section by default', () => {
-    expect(document.querySelector('.settings-section[data-category="search"]').hidden).toBe(false);
-    expect(document.querySelector('.settings-section[data-category="pomodoro"]').hidden).toBe(true);
-  });
-
-  it('switches to pomodoro section when its tab is clicked', () => {
-    document.querySelector('[data-category="pomodoro"]').click();
-    expect(document.querySelector('.settings-section[data-category="search"]').hidden).toBe(true);
-    expect(document.querySelector('.settings-section[data-category="pomodoro"]').hidden).toBe(false);
-  });
-
-  it('marks the active tab', () => {
-    document.querySelector('[data-category="pomodoro"]').click();
-    expect(document.querySelector('[data-category="pomodoro"]').classList.contains('active')).toBe(true);
-    expect(document.querySelector('[data-category="search"]').classList.contains('active')).toBe(false);
-  });
-});

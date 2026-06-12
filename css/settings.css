@@ -73,44 +73,6 @@
   min-height: 200px;
 }
 
-/* Left nav */
-
-.settings-nav {
-  width: 120px;
-  flex-shrink: 0;
-  padding: 1.25rem 0.5rem;
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.settings-category {
-  display: block;
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  font-family: var(--font);
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.1s ease, color 0.1s ease;
-}
-
-.settings-category:hover {
-  background: var(--surface-hover);
-  color: var(--text-primary);
-}
-
-.settings-category.active {
-  background: var(--paper);
-  color: var(--accent);
-  font-weight: 500;
-}
-
 /* Right content */
 
 .settings-content {

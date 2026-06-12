@@ -2,14 +2,14 @@
  * Test setup — runs before every test file in the jsdom environment.
  *
  * 1. Injects the full DOM skeleton so modules can resolve getElementById at import time.
- * 2. Mocks browser APIs that jsdom doesn't implement (AudioContext, Notification, matchMedia).
+ * 2. Mocks browser APIs that jsdom doesn't implement (matchMedia).
  */
 
 import { vi } from 'vitest';
 
 // ── Dialog Polyfill ─────────────────────────
 // jsdom does not implement HTMLDialogElement.showModal() / close().
-// Provide minimal stubs so that initPomodoro / initLinks / initSettings don't throw.
+// Provide minimal stubs so that initLinks / initSettings don't throw.
 
 if (!HTMLDialogElement.prototype.showModal) {
   HTMLDialogElement.prototype.showModal = function () {
@@ -23,36 +23,6 @@ if (!HTMLDialogElement.prototype.close) {
   };
 }
 
-// ── Browser API Mocks ─────────────────────
-
-vi.stubGlobal('AudioContext', class {
-  constructor() { this.destination = null; }
-  createOscillator() {
-    return {
-      connect: () => {},
-      start: () => {},
-      stop: () => {},
-      frequency: { value: 880 },
-      type: 'sine',
-    };
-  }
-  createGain() {
-    return {
-      connect: () => {},
-      gain: {
-        value: 0.3,
-        setValueAtTime: () => {},
-        exponentialRampToValueAtTime: () => {},
-      },
-    };
-  }
-});
-
-vi.stubGlobal('Notification', class Notification {
-  constructor(_title, _opts) { /* no-op */ }
-  static permission = 'denied';
-  static requestPermission() { return Promise.resolve('denied'); }
-});
 
 // jsdom does not implement matchMedia
 const matchMediaMock = (query) => ({
@@ -82,25 +52,6 @@ document.body.innerHTML = `
           <span id="time-sec" class="time-sec">:--</span>
         </div>
         <p class="moment-line" id="greeting">--</p>
-      </div>
-
-      <div id="pomodoro-face" class="pomodoro-face">
-        <time class="pomodoro-timer-big" id="pomodoro-timer-big" data-time="25:00"><span class="pomo-d"><span class="pomo-v">2</span></span><span class="pomo-d"><span class="pomo-v">5</span></span><span class="pomo-sep">:</span><span class="pomo-d"><span class="pomo-v">0</span></span><span class="pomo-d"><span class="pomo-v">0</span></span></time>
-        <p class="pomodoro-phase-label" id="pomodoro-phase-label">准备</p>
-        <div class="pomodoro-sessions" id="pomodoro-sessions">
-          <span class="pomodoro-dot" data-n="1"></span>
-          <span class="pomodoro-dot" data-n="2"></span>
-          <span class="pomodoro-dot" data-n="3"></span>
-          <span class="pomodoro-dot" data-n="4"></span>
-        </div>
-        <div class="pomodoro-tools">
-          <div class="pomodoro-modes">
-            <button class="pomodoro-mode-btn is-active" data-mode="focus">25</button>
-            <button class="pomodoro-mode-btn" data-mode="shortBreak">5</button>
-          </div>
-          <button id="pomodoro-play" class="pomodoro-tool-btn" title="开始">&#9654;</button>
-          <button id="pomodoro-reset" class="pomodoro-tool-btn" title="重置">&#8634;</button>
-        </div>
       </div>
     </div>
 
@@ -133,9 +84,6 @@ document.body.innerHTML = `
       <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
     </button>
-    <button id="pomodoro-toggle" class="settings-btn" title="番茄钟">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="12" x2="12" y2="8"/><line x1="12" y1="12" x2="15" y2="12"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>
-    </button>
   </footer>
 
 <dialog id="link-dialog" class="link-dialog">
@@ -162,10 +110,6 @@ document.body.innerHTML = `
 <dialog id="settings-dialog" class="settings-dialog">
   <form method="dialog" class="settings-form">
     <div class="settings-layout">
-      <nav class="settings-nav">
-        <button type="button" class="settings-category active" data-category="search">搜索</button>
-        <button type="button" class="settings-category" data-category="pomodoro">番茄钟</button>
-      </nav>
       <div class="settings-content">
         <div class="settings-section" data-category="search">
           <h3 class="settings-section-title">搜索栏长度</h3>
@@ -173,25 +117,6 @@ document.body.innerHTML = `
             <input type="range" id="search-width" class="settings-slider" min="360" max="720" value="520" step="10">
             <span class="settings-value" id="search-width-value">520px</span>
           </div>
-        </div>
-        <div class="settings-section" data-category="pomodoro" hidden>
-          <h3 class="settings-section-title">番茄钟</h3>
-          <label class="dialog-label">
-            专注时长
-            <input type="number" id="pomo-work" class="dialog-input" min="1" max="90" value="25"> 分钟
-          </label>
-          <label class="dialog-label">
-            短休息
-            <input type="number" id="pomo-short-break" class="dialog-input" min="1" max="30" value="5"> 分钟
-          </label>
-          <label class="dialog-label">
-            长休息
-            <input type="number" id="pomo-long-break" class="dialog-input" min="1" max="60" value="15"> 分钟
-          </label>
-          <label class="dialog-label">
-            间隔
-            <input type="number" id="pomo-long-interval" class="dialog-input" min="2" max="10" value="4"> 个
-          </label>
         </div>
       </div>
     </div>

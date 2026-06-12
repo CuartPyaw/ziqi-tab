@@ -32,7 +32,7 @@ npm run test:watch    # Watch 模式开发测试
 ## Architecture
 
 ```
-newtab.html          ← 唯一页面入口，含全部 DOM 骨架 + 两个 <dialog> + 番茄钟内联面板
+newtab.html          ← 唯一页面入口，含全部 DOM 骨架 + 两个 <dialog>
 css/style.css        ← 全部样式，CSS 变量驱动主题，不含外部字体
 js/
   app.js             ← 入口，按序初始化所有模块
@@ -41,7 +41,6 @@ js/
   search.js          ← 搜索栏 + 引擎下拉切换（Google/Bing/DuckDuckGo）
   links.js           ← 快捷链接网格：CRUD 弹窗，Simple Icons 图标
   settings.js        ← 设置面板：搜索栏宽度滑块控制
-  pomodoro.js        ← 番茄钟：内联时钟替换式，巨大衬线数字 + 极简控制
 icons/               ← 搜索引擎本地 SVG 图标
 tests/               ← 测试套件（Vitest + jsdom）
   setup.js           ← DOM 骨架注入 + 浏览器 API mock
@@ -50,7 +49,6 @@ tests/               ← 测试套件（Vitest + jsdom）
   search.test.js     ← 14 用例
   links.test.js      ← 19 用例
   settings.test.js   ← 12 用例
-  pomodoro.test.js   ← 15 用例
 manifest.json        ← Manifest V3
 ```
 
@@ -61,7 +59,6 @@ manifest.json        ← Manifest V3
 - 特殊处理：
   - `<dialog>.showModal()` 通过 setup 中 polyfill 实现（jsdom 不支持）
   - `animationend` 事件由测试手动 dispatch（jsdom 不执行 CSS 动画）
-  - pomodoro 模块级状态会跨测试用例残留，通过 `initPomo()` 助手中调用 reset 解决
 - 运行：`npm test`（CI）/ `npm run test:watch`（开发）
 
 ## Data Flow (localStorage)
@@ -74,7 +71,6 @@ manifest.json        ← Manifest V3
 | `ziqi-engine` | 默认搜索引擎 | `"google"` / `"bing"` / `"duckduckgo"` |
 | `ziqi-links` | 快捷链接列表 | `[{id, title, url}, ...]` |
 | `ziqi-search-width` | 搜索栏宽度 | `"520"` 等数字字符串 |
-| `ziqi-pomodoro` | 番茄钟时长配置（状态不持久化） | `{work, shortBreak, longBreak, longInterval}` |
 
 ## Theme System
 
@@ -91,6 +87,6 @@ manifest.json        ← Manifest V3
 - **动画**：
   - 页面级入口动画：Animate.css CDN（`animate__bounceInUp`），`.container` 初始 `visibility: hidden`，DOMContentLoaded 后置可见 + 加 class 触发
   - 组件级动画：纯 CSS animation（搜索引擎下拉的 fade in/out），无 JS 动画库
-  - `.container` 的 `--animate-duration: 0.7s` 控制整体速度；番茄钟页面的 `--animate-duration: 0.55s` 控制翻页过渡速度
+  - `.container` 的 `--animate-duration: 0.7s` 控制整体速度
 - **图标**：搜索引擎用本地 SVG（`icons/` 目录）；快捷链接用 `simpleicons.org` CDN，深色模式传浅色 hex 参数
 - **时钟**：`setInterval(tick, 1000)` 对齐下一整秒启动避免 JS 偏移；CSS 层面 `.time-sec` 用 `position: absolute` 脱离布局流，避免秒数字比例宽度波动导致 `.time` 整宽变化 → flex 重居中产生左右漂移（参考 qiaomu-tab 单元素时钟结构）
