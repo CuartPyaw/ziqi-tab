@@ -22,6 +22,9 @@ start newtab.html    # Windows
 # 运行测试：
 npm test              # 单次运行 vitest（CI 模式）
 npm run test:watch    # Watch 模式开发测试
+
+# 打包为 .crx：
+npm run pack          # 调用 Chrome/Edge 内置签名，产出 dist/ziqi-tab-{version}.crx
 ```
 
 这是一个纯静态 HTML+CSS+JS 项目，无构建步骤、无 lint 配置。Animate.css（CDN）是唯一的运行时外部依赖。测试依赖 (`vitest` + `jsdom`) 是唯一的 devDependencies，不影响生产运行时。
@@ -33,7 +36,12 @@ npm run test:watch    # Watch 模式开发测试
 
 ```
 newtab.html          ← 唯一页面入口，含全部 DOM 骨架 + 两个 <dialog>
-css/style.css        ← 全部样式，CSS 变量驱动主题，不含外部字体
+css/
+  base.css           ← CSS 变量 + 主题 token + 全局重置
+  clock.css          ← 时钟 / 日期 / 问候语样式
+  search.css         ← 搜索栏 + 引擎下拉样式
+  links.css          ← 快捷链接网格 + 弹窗样式
+  settings.css       ← 设置面板 + 搜索引擎管理样式
 js/
   app.js             ← 入口，按序初始化所有模块
   theme.js           ← 深色/浅色模式：data-theme attr + localStorage
@@ -41,7 +49,7 @@ js/
   search.js          ← 搜索栏 + 引擎下拉切换（Google/Bing/DuckDuckGo）
   links.js           ← 快捷链接网格：CRUD 弹窗，Simple Icons 图标
   settings.js        ← 设置面板：搜索栏宽度滑块控制
-icons/               ← 搜索引擎本地 SVG 图标
+icons/               ← 搜索引擎本地 SVG 图标 + 扩展图标 PNG
 tests/               ← 测试套件（Vitest + jsdom）
   setup.js           ← DOM 骨架注入 + 浏览器 API mock
   theme.test.js      ← 8 用例
@@ -50,6 +58,7 @@ tests/               ← 测试套件（Vitest + jsdom）
   links.test.js      ← 19 用例
   settings.test.js   ← 12 用例
 manifest.json        ← Manifest V3
+pack.sh              ← .crx 打包脚本（调用 Chrome/Edge --pack-extension）
 ```
 
 ## 测试
