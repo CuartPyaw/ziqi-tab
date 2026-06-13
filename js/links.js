@@ -10,6 +10,7 @@ const elForm = document.getElementById('link-form');
 const elTitleInput = document.getElementById('link-title');
 const elUrlInput = document.getElementById('link-url');
 const elDeleteBtn = document.getElementById('link-delete');
+const elIconInput = document.getElementById('link-icon');
 
 /* ── Defaults ─────────────────────────── */
 
@@ -68,6 +69,11 @@ function iconUrl(link) {
   return `https://cdn.simpleicons.org/${slug}`;
 }
 
+function resolveIconUrl(link) {
+  if (link.icon && link.icon.length > 0) return link.icon;
+  return iconUrl(link);
+}
+
 function fallbackLetter(title) {
   return (title || '?').charAt(0).toUpperCase();
 }
@@ -91,14 +97,20 @@ function render() {
     iconWrap.className = 'link-icon-wrapper';
 
     const img = document.createElement('img');
-    const src = iconUrl(link);
+    const src = resolveIconUrl(link);
     img.src = src || '';
     img.alt = '';
-    // 图标是小型 SVG，eager 加载避免延迟
     img.loading = 'eager';
 
-    // Fallback on error: use first letter of title
+    // 三级回退：自定义 URL → Simple Icons CDN → 首字母
     img.onerror = ((lnk) => () => {
+      if (lnk.icon && img.src === lnk.icon) {
+        const cdnSrc = iconUrl(lnk);
+        if (cdnSrc) {
+          img.src = cdnSrc;
+          return;
+        }
+      }
       const fb = document.createElement('div');
       fb.className = 'link-icon-fallback';
       fb.textContent = fallbackLetter(lnk.title);
@@ -149,6 +161,7 @@ function openDialog(id = null) {
     if (link) {
       elTitleInput.value = link.title;
       elUrlInput.value = link.url;
+      elIconInput.value = link.icon || '';
       elDeleteBtn.hidden = false;
     }
   } else {
@@ -172,6 +185,7 @@ function handleSave(e) {
   e.preventDefault();
   const title = elTitleInput.value.trim();
   let url = elUrlInput.value.trim();
+  const icon = elIconInput.value.trim();
 
   if (!title || !url) return;
 
@@ -181,9 +195,9 @@ function handleSave(e) {
 
   if (editingId) {
     const idx = links.findIndex((l) => l.id === editingId);
-    if (idx !== -1) links[idx] = { ...links[idx], title, url };
+    if (idx !== -1) links[idx] = { ...links[idx], title, url, icon };
   } else {
-    links.push({ id: makeId(), title, url });
+    links.push({ id: makeId(), title, url, icon });
   }
 
   save();
@@ -208,6 +222,8 @@ function handleContextMenu(e) {
 }
 
 /* ── Init ─────────────────────────────── */
+
+export { domainToSlug, iconUrl, resolveIconUrl, fallbackLetter };
 
 export function initLinks() {
   links = load();
@@ -291,7 +307,8 @@ export function initLinks() {
       const a = img.closest('.link-item');
       const id = a?.getAttribute('data-id');
       const link = links.find((l) => l.id === id);
-      if (link) {
+      // 自定义图标 URL 不随主题变化，跳过
+      if (link && !link.icon) {
         const newSrc = iconUrl(link);
         // 只有 URL 真正变化（如 GitHub 切换配色）才更新 src
         if (newSrc && newSrc !== img.src) img.src = newSrc;

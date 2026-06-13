@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { initLinks } from '../js/links.js';
+import { initLinks, resolveIconUrl, iconUrl } from '../js/links.js';
 
 const DEFAULTS = [
   { id: '1', title: 'YouTube', url: 'https://www.youtube.com' },
@@ -211,5 +211,99 @@ describe('icon helpers (via DOM)', () => {
     initLinks();
     const img = document.querySelector('.link-item img');
     expect(img.src).toContain('181717');
+  });
+});
+
+describe('custom icon URL', () => {
+  it('uses custom icon URL when provided', () => {
+    localStorage.setItem('ziqi-links', JSON.stringify([
+      { id: 'c1', title: 'Custom', url: 'https://example.com', icon: 'https://example.com/icon.svg' },
+    ]));
+    initLinks();
+    const img = document.querySelector('.link-item img');
+    expect(img.src).toBe('https://example.com/icon.svg');
+  });
+
+  it('falls back to Simple Icons CDN when icon field is empty', () => {
+    localStorage.setItem('ziqi-links', JSON.stringify([
+      { id: 'c2', title: 'NoIcon', url: 'https://example.com' },
+    ]));
+    initLinks();
+    const img = document.querySelector('.link-item img');
+    expect(img.src).toContain('cdn.simpleicons.org');
+  });
+
+  it('falls back to Simple Icons CDN when icon field is blank string', () => {
+    localStorage.setItem('ziqi-links', JSON.stringify([
+      { id: 'c3', title: 'BlankIcon', url: 'https://example.com', icon: '' },
+    ]));
+    initLinks();
+    const img = document.querySelector('.link-item img');
+    expect(img.src).toContain('cdn.simpleicons.org');
+  });
+
+  it('stores custom icon URL when saving a new link', () => {
+    initLinks();
+    document.querySelector('.link-add').click();
+    document.getElementById('link-title').value = 'With Icon';
+    document.getElementById('link-url').value = 'https://example.com';
+    document.getElementById('link-icon').value = 'https://example.com/icon.svg';
+    document.getElementById('link-form').dispatchEvent(new Event('submit', { cancelable: true }));
+
+    const links = JSON.parse(localStorage.getItem('ziqi-links'));
+    expect(links).toContainEqual(expect.objectContaining({
+      title: 'With Icon',
+      url: 'https://example.com',
+      icon: 'https://example.com/icon.svg',
+    }));
+  });
+
+  it('populates icon field when editing a link with custom icon', () => {
+    localStorage.setItem('ziqi-links', JSON.stringify([
+      { id: 'c4', title: 'HasIcon', url: 'https://example.com', icon: 'https://example.com/icon.svg' },
+    ]));
+    initLinks();
+    document.querySelector('.link-label').dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    expect(document.getElementById('link-icon').value).toBe('https://example.com/icon.svg');
+  });
+
+  it('clears custom icon when field is emptied during edit', () => {
+    localStorage.setItem('ziqi-links', JSON.stringify([
+      { id: 'c5', title: 'HadIcon', url: 'https://example.com', icon: 'https://example.com/icon.svg' },
+    ]));
+    initLinks();
+    document.querySelector('.link-label').dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    document.getElementById('link-icon').value = '';
+    document.getElementById('link-form').dispatchEvent(new Event('submit', { cancelable: true }));
+
+    const links = JSON.parse(localStorage.getItem('ziqi-links'));
+    expect(links[0].icon).toBe('');
+  });
+
+  it('renders custom icon image with correct src', () => {
+    localStorage.setItem('ziqi-links', JSON.stringify([
+      { id: 'c6', title: 'CustomIcon', url: 'https://example.com', icon: 'https://example.com/icon.svg' },
+    ]));
+    initLinks();
+    const img = document.querySelector('.link-item img');
+    expect(img.src).toBe('https://example.com/icon.svg');
+    expect(img.crossOrigin).toBeNull();
+  });
+});
+
+describe('resolveIconUrl (unit)', () => {
+  it('returns custom icon URL when present', () => {
+    const link = { id: '1', title: 'X', url: 'https://x.com', icon: 'https://custom/icon.svg' };
+    expect(resolveIconUrl(link)).toBe('https://custom/icon.svg');
+  });
+
+  it('falls back to Simple Icons CDN when no custom icon', () => {
+    const link = { id: '1', title: 'X', url: 'https://x.com' };
+    expect(resolveIconUrl(link)).toContain('cdn.simpleicons.org/x');
+  });
+
+  it('returns null for bad URL and no custom icon', () => {
+    const link = { id: '1', title: 'Bad', url: 'not-a-url' };
+    expect(resolveIconUrl(link)).toBeNull();
   });
 });
