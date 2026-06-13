@@ -34,7 +34,7 @@
 /* Time — serif display clock (qiaomu-tab inspired) */
 .time {
   font-family: Lora, "LXGW WenKai GB Screen", Georgia, serif;
-  font-size: clamp(3.5rem, 14vw, 9rem);
+  font-size: clamp(3rem, 12vw, 8rem);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
