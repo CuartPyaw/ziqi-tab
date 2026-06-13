@@ -20,6 +20,7 @@ const BUILTIN_ENGINES = {
 };
 
 let currentEngine = 'google';
+let menuKeyHandler = null;
 
 /* ── Engine data layer ──────────────────── */
 
@@ -101,26 +102,77 @@ function renderTriggerIcon() {
 
 function renderMenu() {
   elMenu.innerHTML = '';
-  getAllEngines().forEach(engine => {
+  const engines = getAllEngines();
+  let showedDivider = false;
+
+  engines.forEach((engine) => {
+    // Add divider before first custom engine
+    if (!engine.builtin && !showedDivider) {
+      showedDivider = true;
+      const divider = document.createElement('div');
+      divider.className = 'engine-menu-divider';
+      elMenu.appendChild(divider);
+    }
+
     const btn = document.createElement('button');
     btn.className = 'engine-option';
     if (engine.id === currentEngine) btn.classList.add('selected');
     btn.type = 'button';
     btn.setAttribute('data-value', engine.id);
+    btn.setAttribute('role', 'menuitem');
 
-    const img = document.createElement('img');
-    img.className = 'engine-option-icon';
-    img.src = engine.icon || '';
-    img.alt = '';
+    // Icon: builtin = SVG img, custom = first-letter span
+    if (engine.builtin && engine.icon) {
+      const img = document.createElement('img');
+      img.className = 'engine-option-icon';
+      img.src = engine.icon;
+      img.alt = '';
+      btn.appendChild(img);
+    } else {
+      const letter = document.createElement('span');
+      letter.className = 'engine-option-letter';
+      letter.textContent = engine.name.charAt(0).toUpperCase();
+      btn.appendChild(letter);
+    }
 
+    // Name
     const name = document.createElement('span');
     name.textContent = engine.name;
-
-    btn.appendChild(img);
     btn.appendChild(name);
 
-    btn.addEventListener('click', () => selectEngine(engine.id));
+    // Edit/Delete buttons for custom engines
+    if (!engine.builtin) {
+      const actions = document.createElement('span');
+      actions.className = 'engine-option-actions';
+      actions.innerHTML = `<button type="button" class="engine-edit-btn" data-id="${engine.id}" title="编辑">✏️</button><button type="button" class="engine-delete-btn" data-id="${engine.id}" title="删除">🗑️</button>`;
+      btn.appendChild(actions);
+    }
+
+    btn.addEventListener('click', (e) => {
+      // Ignore clicks on edit/delete buttons (they dispatch custom events)
+      if (e.target.classList.contains('engine-edit-btn') || e.target.classList.contains('engine-delete-btn')) return;
+      selectEngine(engine.id);
+    });
+
     elMenu.appendChild(btn);
+  });
+
+  // Bind edit/delete button events
+  elMenu.querySelectorAll('.engine-edit-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      document.dispatchEvent(new CustomEvent('engine-edit', { detail: { id } }));
+      closeMenu();
+    });
+  });
+  elMenu.querySelectorAll('.engine-delete-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      document.dispatchEvent(new CustomEvent('engine-delete', { detail: { id } }));
+      closeMenu();
+    });
   });
 }
 
@@ -131,8 +183,32 @@ function openMenu() {
   elMenu.classList.remove('anim-out');
   elMenu.classList.add('anim-in');
   elBackdrop.removeAttribute('hidden');
-  elIconBtn.classList.add('open');
+  elChevronBtn.classList.add('open');
   renderMenu();
+
+  // Arrow key navigation within menu
+  if (menuKeyHandler) document.removeEventListener('keydown', menuKeyHandler);
+  menuKeyHandler = (e) => {
+    if (elMenu.hasAttribute('hidden')) return;
+    const items = elMenu.querySelectorAll('.engine-option');
+    if (items.length === 0) return;
+    const focused = elMenu.querySelector('.engine-option:focus');
+    const idx = focused ? Array.from(items).indexOf(focused) : -1;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const next = (idx + 1) % items.length;
+      items[next].focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prev = (idx - 1 + items.length) % items.length;
+      items[prev].focus();
+    } else if (e.key === 'Enter' && focused) {
+      e.preventDefault();
+      focused.click();
+    }
+  };
+  document.addEventListener('keydown', menuKeyHandler);
 }
 
 function closeMenu() {
@@ -146,6 +222,10 @@ function closeMenu() {
     elMenu.classList.remove('anim-out');
     elBackdrop.setAttribute('hidden', '');
     elIconBtn.classList.remove('open');
+    if (menuKeyHandler) {
+      document.removeEventListener('keydown', menuKeyHandler);
+      menuKeyHandler = null;
+    }
     elMenu.removeEventListener('animationend', onEnd);
   };
   elMenu.addEventListener('animationend', onEnd);
