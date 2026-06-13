@@ -26,6 +26,7 @@ export function initTheme() {
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
     if (!localStorage.getItem(STORAGE_KEY)) {
       applyTheme(e.matches ? 'dark' : 'light');
+      window.dispatchEvent(new CustomEvent('theme-changed'));
     }
   });
 
