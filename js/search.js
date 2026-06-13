@@ -3,45 +3,100 @@
  */
 
 const elInput = document.getElementById('search-input');
-const elTrigger = document.getElementById('engine-trigger');
+const elIconBtn = document.getElementById('engine-icon-btn');
+const elChevronBtn = document.getElementById('engine-chevron-btn');
 const elEngineIcon = document.getElementById('engine-icon');
+const elEngineLetter = document.getElementById('engine-letter');
 const elMenu = document.getElementById('engine-menu');
 const elBackdrop = document.getElementById('engine-backdrop');
 const STORAGE_KEY = 'ziqi-engine';
+const CUSTOM_KEY = 'ziqi-engines';
+const ORDER_KEY = 'ziqi-engine-order';
 
-const ENGINES = {
-  google:    { name: 'Google',     url: 'https://www.google.com/search?q=', icon: 'icons/google.svg' },
-  bing:      { name: 'Bing',       url: 'https://www.bing.com/search?q=',   icon: 'icons/bing.svg' },
-  duckduckgo:{ name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=',       icon: 'icons/duckduckgo.svg' },
+const BUILTIN_ENGINES = {
+  google:     { id: 'google',     name: 'Google',     url: 'https://www.google.com/search?q=', icon: 'icons/google.svg',     builtin: true },
+  bing:       { id: 'bing',       name: 'Bing',       url: 'https://www.bing.com/search?q=',   icon: 'icons/bing.svg',       builtin: true },
+  duckduckgo: { id: 'duckduckgo', name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=',       icon: 'icons/duckduckgo.svg', builtin: true },
 };
 
 let currentEngine = 'google';
 
-/* ── Icon ──────────────────────────────── */
+/* ── Engine data layer ──────────────────── */
 
-function engineIcon(key) {
-  return ENGINES[key]?.icon || '';
+function loadCustomEngines() {
+  try {
+    const raw = localStorage.getItem(CUSTOM_KEY);
+    if (!raw) return {};
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return {};
+    const map = {};
+    arr.forEach(e => { if (e.id) map[e.id] = e; });
+    return map;
+  } catch (_) { return {}; }
 }
+
+function saveCustomEngines(map) {
+  const arr = Object.values(map).filter(e => !e.builtin);
+  localStorage.setItem(CUSTOM_KEY, JSON.stringify(arr));
+}
+
+function getAllEngines() {
+  const customs = loadCustomEngines();
+  const all = { ...BUILTIN_ENGINES, ...customs };
+  const order = getEngineOrder();
+  return order.map(id => all[id]).filter(Boolean);
+}
+
+function getEngineOrder() {
+  try {
+    const raw = localStorage.getItem(ORDER_KEY);
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr) && arr.length) return arr;
+    }
+  } catch (_) {}
+  // Default: presets first, then customs in add order
+  const customs = loadCustomEngines();
+  return [...Object.keys(BUILTIN_ENGINES), ...Object.keys(customs)];
+}
+
+function saveEngineOrder(order) {
+  localStorage.setItem(ORDER_KEY, JSON.stringify(order));
+}
+
+function engineIconSrc(key) {
+  const all = { ...BUILTIN_ENGINES, ...loadCustomEngines() };
+  return all[key]?.icon || '';
+}
+
+export function getCurrentEngine() {
+  const all = { ...BUILTIN_ENGINES, ...loadCustomEngines() };
+  return all[currentEngine] || BUILTIN_ENGINES.google;
+}
+
+export { getAllEngines };
 
 /* ── Render ────────────────────────────── */
 
 function renderTriggerIcon() {
-  elEngineIcon.src = engineIcon(currentEngine);
-  elEngineIcon.alt = ENGINES[currentEngine]?.name || '';
+  const all = { ...BUILTIN_ENGINES, ...loadCustomEngines() };
+  const engine = all[currentEngine];
+  elEngineIcon.src = engine?.icon || '';
+  elEngineIcon.alt = engine?.name || '';
 }
 
 function renderMenu() {
   elMenu.innerHTML = '';
-  Object.entries(ENGINES).forEach(([key, engine]) => {
+  getAllEngines().forEach(engine => {
     const btn = document.createElement('button');
     btn.className = 'engine-option';
-    if (key === currentEngine) btn.classList.add('selected');
+    if (engine.id === currentEngine) btn.classList.add('selected');
     btn.type = 'button';
-    btn.setAttribute('data-value', key);
+    btn.setAttribute('data-value', engine.id);
 
     const img = document.createElement('img');
     img.className = 'engine-option-icon';
-    img.src = engineIcon(key);
+    img.src = engine.icon || '';
     img.alt = '';
 
     const name = document.createElement('span');
@@ -50,7 +105,7 @@ function renderMenu() {
     btn.appendChild(img);
     btn.appendChild(name);
 
-    btn.addEventListener('click', () => selectEngine(key));
+    btn.addEventListener('click', () => selectEngine(engine.id));
     elMenu.appendChild(btn);
   });
 }
@@ -62,7 +117,7 @@ function openMenu() {
   elMenu.classList.remove('anim-out');
   elMenu.classList.add('anim-in');
   elBackdrop.removeAttribute('hidden');
-  elTrigger.classList.add('open');
+  elIconBtn.classList.add('open');
   renderMenu();
 }
 
@@ -76,7 +131,7 @@ function closeMenu() {
     elMenu.setAttribute('hidden', '');
     elMenu.classList.remove('anim-out');
     elBackdrop.setAttribute('hidden', '');
-    elTrigger.classList.remove('open');
+    elIconBtn.classList.remove('open');
     elMenu.removeEventListener('animationend', onEnd);
   };
   elMenu.addEventListener('animationend', onEnd);
@@ -92,19 +147,20 @@ function toggleMenu() {
 
 /* ── Select ────────────────────────────── */
 
-function selectEngine(key) {
-  if (!ENGINES[key]) return;
+function selectEngine(key, skipClose = false) {
+  const all = { ...BUILTIN_ENGINES, ...loadCustomEngines() };
+  if (!all[key]) return;
   currentEngine = key;
   localStorage.setItem(STORAGE_KEY, key);
   renderTriggerIcon();
-  closeMenu();
+  if (!skipClose) closeMenu();
 }
 
 /* ── Search ────────────────────────────── */
 
 function search(query) {
-  const base = ENGINES[currentEngine]?.url || ENGINES.google.url;
-  window.location.href = base + encodeURIComponent(query.trim());
+  const engine = getCurrentEngine();
+  window.location.href = engine.url + encodeURIComponent(query.trim());
 }
 
 /* ── Init ──────────────────────────────── */
@@ -112,15 +168,16 @@ function search(query) {
 export function initSearch() {
   // Restore saved engine preference
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved && ENGINES[saved]) {
+  const all = { ...BUILTIN_ENGINES, ...loadCustomEngines() };
+  if (saved && all[saved]) {
     currentEngine = saved;
   }
 
   // Initial render
   renderTriggerIcon();
 
-  // Trigger button click
-  elTrigger.addEventListener('click', (e) => {
+  // Chevron button toggles the engine dropdown
+  elChevronBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     toggleMenu();
   });
@@ -135,7 +192,7 @@ export function initSearch() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !elMenu.hasAttribute('hidden')) {
       closeMenu();
-      elTrigger.focus();
+      elIconBtn.focus();
     }
   });
 
