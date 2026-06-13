@@ -118,11 +118,10 @@ document.body.innerHTML = `
   <form method="dialog" class="settings-form">
     <div class="settings-layout">
       <nav class="settings-nav" id="settings-nav">
-        <button type="button" class="settings-nav-item active" data-tab="search">
-          <span class="settings-nav-icon" aria-hidden="true">🔍</span> 搜索栏
+        <button type="button" class="settings-nav-item active" data-tab="search">搜索栏
         </button>
         <button type="button" class="settings-nav-item" data-tab="engines">
-          <span class="settings-nav-icon" aria-hidden="true">⚙️</span> 搜索引擎
+          搜索引擎
         </button>
       </nav>
       <div class="settings-panels" id="settings-panels">

@@ -114,11 +114,6 @@
   color: var(--surface);
 }
 
-.settings-nav-icon {
-  font-size: 0.875rem;
-  flex-shrink: 0;
-}
-
 /* Right panels */
 
 .settings-panels {
