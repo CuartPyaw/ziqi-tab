@@ -221,7 +221,7 @@ function closeMenu() {
     elMenu.setAttribute('hidden', '');
     elMenu.classList.remove('anim-out');
     elBackdrop.setAttribute('hidden', '');
-    elIconBtn.classList.remove('open');
+    elChevronBtn.classList.remove('open');
     if (menuKeyHandler) {
       document.removeEventListener('keydown', menuKeyHandler);
       menuKeyHandler = null;
@@ -270,7 +270,13 @@ export function initSearch() {
   // Initial render
   renderTriggerIcon();
 
-  // Chevron button toggles the engine dropdown
+  // Icon button click → cycle to next engine
+  elIconBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    cycleEngine(+1);
+  });
+
+  // Chevron button click → toggle menu
   elChevronBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     toggleMenu();
@@ -282,11 +288,24 @@ export function initSearch() {
     closeMenu();
   });
 
-  // Keyboard: Escape closes menu
+  // Keyboard: Escape closes menu, Tab/Shift+Tab cycles engine when input focused
   document.addEventListener('keydown', (e) => {
+    // Escape → close menu
     if (e.key === 'Escape' && !elMenu.hasAttribute('hidden')) {
       closeMenu();
-      elIconBtn.focus();
+      elChevronBtn.focus();
+      return;
+    }
+
+    // Tab / Shift+Tab → cycle engine when search input is focused and menu is closed
+    if (e.key === 'Tab' && document.activeElement === elInput && elMenu.hasAttribute('hidden')) {
+      e.preventDefault();
+      cycleEngine(e.shiftKey ? -1 : +1);
+      // Brief highlight feedback
+      elIconBtn.classList.add('tab-flash');
+      elIconBtn.addEventListener('animationend', () => {
+        elIconBtn.classList.remove('tab-flash');
+      }, { once: true });
     }
   });
 
@@ -300,6 +319,15 @@ export function initSearch() {
 
   // Re-render icons when theme changes
   window.addEventListener('theme-changed', () => {
+    renderTriggerIcon();
+  });
+
+  // Listen for engine list changes from settings
+  window.addEventListener('engines-changed', () => {
+    const engines = getAllEngines();
+    if (!engines.find(e => e.id === currentEngine)) {
+      selectEngine('google', true);
+    }
     renderTriggerIcon();
   });
 

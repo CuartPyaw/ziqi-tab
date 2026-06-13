@@ -13,7 +13,7 @@ describe('search', () => {
     document.getElementById('engine-icon').src = '';
     document.getElementById('engine-menu').setAttribute('hidden', '');
     document.getElementById('engine-backdrop').setAttribute('hidden', '');
-    document.getElementById('engine-trigger').classList.remove('open');
+    document.getElementById('engine-chevron-btn').classList.remove('open');
     initSearch();
   });
 
@@ -40,14 +40,14 @@ describe('search', () => {
   // ── Engine Menu ────────────────────────
 
   it('opens menu when trigger is clicked', () => {
-    document.getElementById('engine-trigger').click();
+    document.getElementById('engine-chevron-btn').click();
     expect(document.getElementById('engine-menu').hasAttribute('hidden')).toBe(false);
     expect(document.getElementById('engine-backdrop').hasAttribute('hidden')).toBe(false);
-    expect(document.getElementById('engine-trigger').classList.contains('open')).toBe(true);
+    expect(document.getElementById('engine-chevron-btn').classList.contains('open')).toBe(true);
   });
 
   it('closes menu when backdrop is clicked', () => {
-    document.getElementById('engine-trigger').click();
+    document.getElementById('engine-chevron-btn').click();
     document.getElementById('engine-backdrop').click();
     // jsdom doesn't fire CSS animationend, so fire it manually
     document.getElementById('engine-menu').dispatchEvent(new Event('animationend'));
@@ -55,14 +55,14 @@ describe('search', () => {
   });
 
   it('closes menu on Escape key', () => {
-    document.getElementById('engine-trigger').click();
+    document.getElementById('engine-chevron-btn').click();
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     document.getElementById('engine-menu').dispatchEvent(new Event('animationend'));
     expect(document.getElementById('engine-menu').hasAttribute('hidden')).toBe(true);
   });
 
   it('renders engine options in the menu on open', () => {
-    document.getElementById('engine-trigger').click();
+    document.getElementById('engine-chevron-btn').click();
     const options = document.querySelectorAll('.engine-option');
     expect(options.length).toBe(3);
     expect(options[0].textContent).toContain('Google');
@@ -71,7 +71,7 @@ describe('search', () => {
   });
 
   it('highlights the current engine in the menu', () => {
-    document.getElementById('engine-trigger').click();
+    document.getElementById('engine-chevron-btn').click();
     const selected = document.querySelector('.engine-option.selected');
     expect(selected).not.toBeNull();
     // The first (Google) option should be selected after a fresh init
@@ -81,7 +81,7 @@ describe('search', () => {
   // ── Engine Selection ───────────────────
 
   it('switches engine when a menu option is clicked', () => {
-    document.getElementById('engine-trigger').click();
+    document.getElementById('engine-chevron-btn').click();
 
     // Click the Bing option
     const bingOption = document.querySelector('[data-value="bing"]');
@@ -94,7 +94,7 @@ describe('search', () => {
   });
 
   it('selecting an engine closes the menu', () => {
-    document.getElementById('engine-trigger').click();
+    document.getElementById('engine-chevron-btn').click();
     document.querySelector('[data-value="duckduckgo"]').click();
     document.getElementById('engine-menu').dispatchEvent(new Event('animationend'));
     expect(document.getElementById('engine-menu').hasAttribute('hidden')).toBe(true);
@@ -124,7 +124,7 @@ describe('search', () => {
 
   it('uses the selected engine for search URL', () => {
     // Switch to Bing
-    document.getElementById('engine-trigger').click();
+    document.getElementById('engine-chevron-btn').click();
     document.querySelector('[data-value="bing"]').click();
     document.getElementById('engine-menu').dispatchEvent(new Event('animationend'));
 
