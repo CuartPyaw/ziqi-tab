@@ -70,24 +70,164 @@
 
 .settings-layout {
   display: flex;
-  min-height: 200px;
+  min-height: 260px;
 }
 
-/* Right content */
+/* Left navigation */
 
-.settings-content {
-  flex: 1;
-  padding: 1.25rem 1.5rem;
-  min-width: 0;
+.settings-nav {
+  width: 130px;
+  flex-shrink: 0;
+  background: var(--surface-alt, #faf8f5);
+  border-right: 1px solid var(--border);
+  padding: 0.75rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.settings-section-title {
+.settings-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: calc(100% - 1rem);
+  margin: 0 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: var(--font);
   font-size: 0.8125rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.1s ease, color 0.1s ease;
+  text-align: left;
+}
+
+.settings-nav-item:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.settings-nav-item.active {
+  background: var(--accent);
+  color: var(--surface);
+}
+
+.settings-nav-icon {
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+/* Right panels */
+
+.settings-panels {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.settings-panel {
+  display: none;
+  padding: 1.25rem 1.5rem;
+}
+
+.settings-panel.active {
+  display: block;
+}
+
+.settings-panel-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.settings-label {
+  display: block;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Engine list */
+
+.engine-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+}
+
+.engine-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  transition: background 0.1s ease;
+}
+
+.engine-list-item--preset {
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+}
+
+.engine-list-item-badge {
+  margin-left: auto;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.engine-list-item-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 2px;
+}
+
+.engine-list-action-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  line-height: 1;
+  transition: background 0.1s ease;
+}
+
+.engine-list-action-btn:hover {
+  background: var(--surface-hover);
+}
+
+/* Add engine button */
+
+.engine-add-btn {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-family: var(--font);
+  font-size: 0.8125rem;
+  color: var(--accent);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.engine-add-btn:hover {
+  border-color: var(--accent);
+  background: var(--surface-hover);
 }
 
 .settings-item {
@@ -158,4 +298,30 @@
   display: flex;
   justify-content: flex-end;
   padding: 0 1.5rem 1.25rem;
+}
+
+/* Engine form dialog */
+
+.engine-form-dialog {
+  margin: auto;
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
+  width: min(360px, 90vw);
+  animation: dialog-in 0.2s ease;
+}
+
+.engine-form-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  animation: fade-in 0.2s ease;
+}
+
+.dialog-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: -0.25rem 0 1rem;
 }
