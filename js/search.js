@@ -72,6 +72,16 @@ export function getCurrentEngine() {
   return all[currentEngine] || BUILTIN_ENGINES.google;
 }
 
+/* ── Cycle ──────────────────────────────── */
+
+function cycleEngine(direction) {
+  const engines = getAllEngines();
+  if (engines.length <= 1) return;
+  const idx = engines.findIndex(e => e.id === currentEngine);
+  const nextIdx = (idx + direction + engines.length) % engines.length;
+  selectEngine(engines[nextIdx].id, true);
+}
+
 /* ── Render ────────────────────────────── */
 
 function renderTriggerIcon() {
