@@ -119,10 +119,10 @@ document.body.innerHTML = `
     <div class="settings-layout">
       <nav class="settings-nav" id="settings-nav">
         <button type="button" class="settings-nav-item active" data-tab="search">
-          <span class="settings-nav-icon">🔍</span> 搜索栏
+          <span class="settings-nav-icon" aria-hidden="true">🔍</span> 搜索栏
         </button>
         <button type="button" class="settings-nav-item" data-tab="engines">
-          <span class="settings-nav-icon">⚙️</span> 搜索引擎
+          <span class="settings-nav-icon" aria-hidden="true">⚙️</span> 搜索引擎
         </button>
       </nav>
       <div class="settings-panels" id="settings-panels">
@@ -152,7 +152,7 @@ document.body.innerHTML = `
   </form>
 </dialog>
 
-<dialog id="engine-form-dialog" class="engine-form-dialog">
+<dialog id="engine-form-dialog" class="engine-form-dialog" aria-labelledby="engine-form-title">
   <form method="dialog" id="engine-form">
     <h3 class="dialog-title" id="engine-form-title">添加搜索引擎</h3>
     <label class="dialog-label">
