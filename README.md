@@ -16,11 +16,12 @@
 
 1. 打开 Chrome，访问 `chrome://extensions`
 2. 开启右上角「开发者模式」
-3. 点击「加载已解压的扩展程序」
-4. 选择 `ziqi-tab` 文件夹
-5. 打开新标签页即可看到
+3. 将整个 `ziqi-tab` 文件夹直接拖入扩展管理页面即可完成安装
+4. 打开新标签页即可看到
 
 Edge 同理：访问 `edge://extensions`，开启开发者模式后加载。
+
+> 💡 也可以点击「加载已解压的扩展程序」按钮，手动选择 `ziqi-tab` 文件夹。
 
 ## 使用
 
@@ -49,11 +50,3 @@ npm run test:watch    # Watch 模式开发测试
 ```
 
 框架：**Vitest** + **jsdom**（无需浏览器），共 81 个测试用例覆盖所有模块。
-
-## 打包
-
-```bash
-npm run pack   # 或 bash pack.sh
-```
-
-自动探测 Chrome/Edge 路径，仅复制运行时文件打包，产出 `dist/ziqi-tab-{version}.crx`。首次运行自动生成签名密钥 `dist/key.pem`（已加入 `.gitignore`，丢失后无法更新已安装扩展）。

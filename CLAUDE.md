@@ -23,9 +23,6 @@ start newtab.html    # Windows
 npm test              # 单次运行 vitest（CI 模式）
 npm run test:watch    # Watch 模式开发测试
 
-# 打包：
-npm run pack          # 产出 dist/ziqi-tab-{version}.crx（Web Store 提交用）+ .zip（解压安装用）
-```
 
 这是一个纯静态 HTML+CSS+JS 项目，无构建步骤、无 lint 配置。Animate.css（CDN）是唯一的运行时外部依赖。测试依赖 (`vitest` + `jsdom`) 是唯一的 devDependencies，不影响生产运行时。
 
@@ -58,7 +55,6 @@ tests/               ← 测试套件（Vitest + jsdom）
   links.test.js      ← 19 用例
   settings.test.js   ← 12 用例
 manifest.json        ← Manifest V3
-pack.sh              ← .crx + .zip 打包脚本（.crx 仅 Web Store 提交，不能直接安装）
 ```
 
 ## 测试
