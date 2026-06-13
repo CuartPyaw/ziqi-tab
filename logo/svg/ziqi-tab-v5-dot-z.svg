@@ -1,0 +1,19 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 点阵 Z：在网格中选点拼出 Z 字轮廓，离散与连续之间的张力 -->
+  <g fill="#D4952A">
+    <rect x="22" y="22" width="8" height="8" rx="2.5"/>
+    <rect x="34" y="22" width="8" height="8" rx="2.5"/>
+    <rect x="46" y="22" width="8" height="8" rx="2.5"/>
+    <rect x="58" y="22" width="8" height="8" rx="2.5"/>
+    <rect x="70" y="22" width="8" height="8" rx="2.5"/>
+    <rect x="58" y="34" width="8" height="8" rx="2.5"/>
+    <rect x="46" y="46" width="8" height="8" rx="2.5"/>
+    <rect x="34" y="58" width="8" height="8" rx="2.5"/>
+    <rect x="46" y="58" width="8" height="8" rx="2.5"/>
+    <rect x="22" y="70" width="8" height="8" rx="2.5"/>
+    <rect x="34" y="70" width="8" height="8" rx="2.5"/>
+    <rect x="46" y="70" width="8" height="8" rx="2.5"/>
+    <rect x="58" y="70" width="8" height="8" rx="2.5"/>
+    <rect x="70" y="70" width="8" height="8" rx="2.5"/>
+  </g>
+</svg>

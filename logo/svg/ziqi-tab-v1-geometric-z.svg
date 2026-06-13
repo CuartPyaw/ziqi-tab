@@ -1,0 +1,4 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 几何 Z：两条横杆 + 一条斜线，致敬包豪斯极简主义 -->
+  <path d="M 28 33 L 64 33 L 36 67 L 72 67" fill="none" stroke="#D4952A" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

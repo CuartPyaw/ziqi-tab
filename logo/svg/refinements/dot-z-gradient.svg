@@ -1,0 +1,33 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 点阵 Z · 暖意渐变：上方暖黄渐变到下方深琥珀 -->
+  <defs>
+    <linearGradient id="warm-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E8B84B"/>
+      <stop offset="50%" stop-color="#D4952A"/>
+      <stop offset="100%" stop-color="#B8781E"/>
+    </linearGradient>
+  </defs>
+  <g fill="url(#warm-grad)">
+    <!-- Row 0 -->
+    <rect x="22" y="22" width="8" height="8" rx="2.5"/>
+    <rect x="34" y="22" width="8" height="8" rx="2.5"/>
+    <rect x="46" y="22" width="8" height="8" rx="2.5"/>
+    <rect x="58" y="22" width="8" height="8" rx="2.5"/>
+    <rect x="70" y="22" width="8" height="8" rx="2.5"/>
+    <!-- Row 1 -->
+    <rect x="46" y="34" width="8" height="8" rx="2.5"/>
+    <rect x="58" y="34" width="8" height="8" rx="2.5"/>
+    <!-- Row 2 -->
+    <rect x="34" y="46" width="8" height="8" rx="2.5"/>
+    <rect x="46" y="46" width="8" height="8" rx="2.5"/>
+    <!-- Row 3 -->
+    <rect x="22" y="58" width="8" height="8" rx="2.5"/>
+    <rect x="34" y="58" width="8" height="8" rx="2.5"/>
+    <!-- Row 4 -->
+    <rect x="22" y="70" width="8" height="8" rx="2.5"/>
+    <rect x="34" y="70" width="8" height="8" rx="2.5"/>
+    <rect x="46" y="70" width="8" height="8" rx="2.5"/>
+    <rect x="58" y="70" width="8" height="8" rx="2.5"/>
+    <rect x="70" y="70" width="8" height="8" rx="2.5"/>
+  </g>
+</svg>

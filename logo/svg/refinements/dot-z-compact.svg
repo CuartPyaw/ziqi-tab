@@ -1,0 +1,26 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 点阵 Z · 紧凑间距：缩小点间距为 10px，整体更精致 -->
+  <g fill="#D4952A">
+    <!-- Row 0 -->
+    <rect x="20" y="20" width="8" height="8" rx="2.5"/>
+    <rect x="31" y="20" width="8" height="8" rx="2.5"/>
+    <rect x="42" y="20" width="8" height="8" rx="2.5"/>
+    <rect x="53" y="20" width="8" height="8" rx="2.5"/>
+    <rect x="64" y="20" width="8" height="8" rx="2.5"/>
+    <!-- Row 1 -->
+    <rect x="42" y="31" width="8" height="8" rx="2.5"/>
+    <rect x="53" y="31" width="8" height="8" rx="2.5"/>
+    <!-- Row 2 -->
+    <rect x="31" y="42" width="8" height="8" rx="2.5"/>
+    <rect x="42" y="42" width="8" height="8" rx="2.5"/>
+    <!-- Row 3 -->
+    <rect x="20" y="53" width="8" height="8" rx="2.5"/>
+    <rect x="31" y="53" width="8" height="8" rx="2.5"/>
+    <!-- Row 4 -->
+    <rect x="20" y="64" width="8" height="8" rx="2.5"/>
+    <rect x="31" y="64" width="8" height="8" rx="2.5"/>
+    <rect x="42" y="64" width="8" height="8" rx="2.5"/>
+    <rect x="53" y="64" width="8" height="8" rx="2.5"/>
+    <rect x="64" y="64" width="8" height="8" rx="2.5"/>
+  </g>
+</svg>

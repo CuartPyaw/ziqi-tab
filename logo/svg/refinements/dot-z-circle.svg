@@ -1,0 +1,26 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 点阵 Z · 圆形点：用正圆替代圆角方块，更柔和温暖 -->
+  <g fill="#D4952A">
+    <!-- Row 0 -->
+    <circle cx="26" cy="26" r="4.5"/>
+    <circle cx="38" cy="26" r="4.5"/>
+    <circle cx="50" cy="26" r="4.5"/>
+    <circle cx="62" cy="26" r="4.5"/>
+    <circle cx="74" cy="26" r="4.5"/>
+    <!-- Row 1 -->
+    <circle cx="50" cy="38" r="4.5"/>
+    <circle cx="62" cy="38" r="4.5"/>
+    <!-- Row 2 -->
+    <circle cx="38" cy="50" r="4.5"/>
+    <circle cx="50" cy="50" r="4.5"/>
+    <!-- Row 3 -->
+    <circle cx="26" cy="62" r="4.5"/>
+    <circle cx="38" cy="62" r="4.5"/>
+    <!-- Row 4 -->
+    <circle cx="26" cy="74" r="4.5"/>
+    <circle cx="38" cy="74" r="4.5"/>
+    <circle cx="50" cy="74" r="4.5"/>
+    <circle cx="62" cy="74" r="4.5"/>
+    <circle cx="74" cy="74" r="4.5"/>
+  </g>
+</svg>

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ziqi Tab — 品牌标识系统</title>
+    <style>
+        :root {
+            --amber: #D4952A;
+            --amber-light: #E8B84B;
+            --amber-deep: #B8781E;
+            --cream: #FEFAF3;
+            --paper: #FFF8ED;
+            --text: #3D2E1A;
+            --text-secondary: #8B7355;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Serif SC", Georgia, serif;
+            background: var(--cream);
+            color: var(--text);
+        }
+
+        /* ══════════════════════════════════════════
+           HERO — 纸本编辑风格
+           ══════════════════════════════════════════ */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(ellipse at 50% 40%, rgba(212,149,42,0.06) 0%, transparent 70%),
+                linear-gradient(180deg, #FEFAF3 0%, #F8F0E3 100%);
+            position: relative;
+            overflow: hidden;
+            padding: 60px 24px;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        .hero .logo-display {
+            width: min(280px, 55vw);
+            height: min(280px, 55vw);
+            position: relative;
+            z-index: 1;
+            animation: floatIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        @keyframes floatIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .hero .product-name {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 300;
+            letter-spacing: 0.12em;
+            margin-top: 40px;
+            position: relative;
+            z-index: 1;
+            animation: floatIn 1.2s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .hero .product-name span {
+            color: var(--amber);
+        }
+
+        .hero .tagline {
+            font-size: 0.78rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            opacity: 0.55;
+            margin-top: 12px;
+            position: relative;
+            z-index: 1;
+            animation: floatIn 1.2s 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .hero .divider {
+            width: 36px;
+            height: 1px;
+            background: var(--amber);
+            margin-top: 32px;
+            opacity: 0.35;
+            animation: floatIn 1.2s 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        /* ══════════════════════════════════════════
+           SECTION: 晨雾光域
+           ══════════════════════════════════════════ */
+        .morning {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(ellipse at 30% 50%, rgba(232,184,75,0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 50%, rgba(212,149,42,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(184,120,30,0.08) 0%, transparent 40%),
+                linear-gradient(180deg, #FFFBF5 0%, #FDF3E4 40%, #FAECD8 100%);
+            position: relative;
+            overflow: hidden;
+            padding: 60px 24px;
+        }
+
+        .morning::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 60% 30%, rgba(232,184,75,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 20% 70%, rgba(212,149,42,0.08) 0%, transparent 45%);
+            filter: blur(60px);
+        }
+
+        .morning .content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .morning .logo-sm {
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 48px;
+            filter: drop-shadow(0 4px 20px rgba(212,149,42,0.12));
+        }
+
+        .morning h2 {
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--amber);
+            opacity: 0.6;
+            margin-bottom: 12px;
+        }
+
+        .morning p {
+            font-size: 1.1rem;
+            line-height: 2;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            max-width: 360px;
+        }
+
+        /* ══════════════════════════════════════════
+           SECTION: 物理影棚
+           ══════════════════════════════════════════ */
+        .spotlight {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(ellipse at 50% 40%, rgba(80,60,30,0.4) 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 60%, rgba(212,149,42,0.06) 0%, transparent 50%),
+                #2A2015;
+            position: relative;
+            overflow: hidden;
+            padding: 60px 24px;
+        }
+
+        .spotlight::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        .spotlight .content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .spotlight .logo-light {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 48px;
+        }
+
+        .spotlight .logo-light svg * {
+            stroke: #E8B84B !important;
+            fill: #E8B84B !important;
+        }
+
+        .spotlight h2 {
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: rgba(232,184,75,0.55);
+            margin-bottom: 12px;
+        }
+
+        .spotlight p {
+            font-size: 1.1rem;
+            line-height: 2;
+            color: rgba(232,184,75,0.5);
+            max-width: 360px;
+        }
+
+        /* ══════════════════════════════════════════
+           SECTION: 容器化界面
+           ══════════════════════════════════════════ */
+        .ui-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background:
+                linear-gradient(135deg, #F5F0E8 0%, #FEFAF3 30%, #F8F2E6 60%, #FEFAF3 100%);
+            position: relative;
+            overflow: hidden;
+            padding: 60px 24px;
+        }
+
+        .ui-container .app-icon {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(145deg, #FFFBF5, #FDF3E4);
+            border-radius: 40px;
+            box-shadow:
+                0 20px 60px rgba(61,46,26,0.08),
+                0 0 0 1px rgba(212,149,42,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 36px;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 48px;
+        }
+
+        .ui-container .app-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .ui-container h2 {
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--amber);
+            opacity: 0.6;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .ui-container p {
+            font-size: 1.1rem;
+            line-height: 2;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            max-width: 360px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ══════════════════════════════════════════
+           FOOTER
+           ══════════════════════════════════════════ */
+        .footer-bar {
+            padding: 48px 24px;
+            text-align: center;
+            background: var(--cream);
+            border-top: 1px solid rgba(139,115,85,0.08);
+        }
+
+        .footer-bar .color-dots {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .footer-bar .color-dots span {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: block;
+        }
+
+        .footer-bar .footer-text {
+            font-size: 0.72rem;
+            letter-spacing: 0.15em;
+            color: var(--text-secondary);
+            opacity: 0.4;
+            line-height: 2;
+        }
+
+        .footer-bar a {
+            color: var(--amber);
+            opacity: 0.6;
+            text-decoration: none;
+        }
+        .footer-bar a:hover { opacity: 1; }
+
+        /* ── Scroll indicator ── */
+        .scroll-hint {
+            position: absolute;
+            bottom: 36px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.3; }
+            50% { transform: translateX(-50%) translateY(8px); opacity: 0.6; }
+        }
+
+        .scroll-hint svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--amber);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+            .hero .logo-display { width: 200px; height: 200px; }
+            .morning .logo-sm { width: 120px; height: 120px; }
+            .spotlight .logo-light { width: 140px; height: 140px; }
+            .ui-container .app-icon { width: 150px; height: 150px; border-radius: 32px; padding: 28px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ═══ HERO: 纸本编辑 ═══ -->
+    <section class="hero">
+        <div class="logo-display">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+                <g fill="#D4952A">
+                    <rect x="22" y="22" width="8" height="8" rx="2.5"/>
+                    <rect x="34" y="22" width="8" height="8" rx="2.5"/>
+                    <rect x="46" y="22" width="8" height="8" rx="2.5"/>
+                    <rect x="58" y="22" width="8" height="8" rx="2.5"/>
+                    <rect x="70" y="22" width="8" height="8" rx="2.5"/>
+                    <rect x="46" y="34" width="8" height="8" rx="2.5"/>
+                    <rect x="58" y="34" width="8" height="8" rx="2.5"/>
+                    <rect x="34" y="46" width="8" height="8" rx="2.5"/>
+                    <rect x="46" y="46" width="8" height="8" rx="2.5"/>
+                    <rect x="22" y="58" width="8" height="8" rx="2.5"/>
+                    <rect x="34" y="58" width="8" height="8" rx="2.5"/>
+                    <rect x="22" y="70" width="8" height="8" rx="2.5"/>
+                    <rect x="34" y="70" width="8" height="8" rx="2.5"/>
+                    <rect x="46" y="70" width="8" height="8" rx="2.5"/>
+                    <rect x="58" y="70" width="8" height="8" rx="2.5"/>
+                    <rect x="70" y="70" width="8" height="8" rx="2.5"/>
+                </g>
+            </svg>
+        </div>
+
+        <h1 class="product-name">Ziqi <span>Tab</span></h1>
+        <p class="tagline">点阵 Z · 品牌标识系统</p>
+        <div class="divider"></div>
+
+        <div class="scroll-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+            </svg>
+        </div>
+    </section>
+
+    <!-- ═══ MORNING: 晨雾光域 ═══ -->
+    <section class="morning">
+        <div class="content">
+            <div class="logo-sm">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+                    <g fill="#D4952A">
+                        <rect x="22" y="22" width="8" height="8" rx="2.5"/><rect x="34" y="22" width="8" height="8" rx="2.5"/><rect x="46" y="22" width="8" height="8" rx="2.5"/><rect x="58" y="22" width="8" height="8" rx="2.5"/><rect x="70" y="22" width="8" height="8" rx="2.5"/>
+                        <rect x="46" y="34" width="8" height="8" rx="2.5"/><rect x="58" y="34" width="8" height="8" rx="2.5"/><rect x="34" y="46" width="8" height="8" rx="2.5"/><rect x="46" y="46" width="8" height="8" rx="2.5"/><rect x="22" y="58" width="8" height="8" rx="2.5"/><rect x="34" y="58" width="8" height="8" rx="2.5"/>
+                        <rect x="22" y="70" width="8" height="8" rx="2.5"/><rect x="34" y="70" width="8" height="8" rx="2.5"/><rect x="46" y="70" width="8" height="8" rx="2.5"/><rect x="58" y="70" width="8" height="8" rx="2.5"/><rect x="70" y="70" width="8" height="8" rx="2.5"/>
+                    </g>
+                </svg>
+            </div>
+            <h2>晨雾光域 · Morning Aura</h2>
+            <p>暖白奶油底色上弥漫着薄雾般的柔光，如同清晨第一缕阳光穿透窗帘。琥珀色的点阵 Z 静静悬浮其中，温暖而毫无压迫感。</p>
+        </div>
+    </section>
+
+    <!-- ═══ SPOTLIGHT: 物理影棚 ═══ -->
+    <section class="spotlight">
+        <div class="content">
+            <div class="logo-light">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+                    <g fill="#E8B84B">
+                        <rect x="22" y="22" width="8" height="8" rx="2.5"/><rect x="34" y="22" width="8" height="8" rx="2.5"/><rect x="46" y="22" width="8" height="8" rx="2.5"/><rect x="58" y="22" width="8" height="8" rx="2.5"/><rect x="70" y="22" width="8" height="8" rx="2.5"/>
+                        <rect x="46" y="34" width="8" height="8" rx="2.5"/><rect x="58" y="34" width="8" height="8" rx="2.5"/><rect x="34" y="46" width="8" height="8" rx="2.5"/><rect x="46" y="46" width="8" height="8" rx="2.5"/><rect x="22" y="58" width="8" height="8" rx="2.5"/><rect x="34" y="58" width="8" height="8" rx="2.5"/>
+                        <rect x="22" y="70" width="8" height="8" rx="2.5"/><rect x="34" y="70" width="8" height="8" rx="2.5"/><rect x="46" y="70" width="8" height="8" rx="2.5"/><rect x="58" y="70" width="8" height="8" rx="2.5"/><rect x="70" y="70" width="8" height="8" rx="2.5"/>
+                    </g>
+                </svg>
+            </div>
+            <h2>物理影棚 · Studio Spotlight</h2>
+            <p>深碳灰底色上，一束聚光灯从上方洒下。浅暖金色的点阵 Z 在暗处浮现，如同暗房中的第一张印相——静谧而充满质感。</p>
+        </div>
+    </section>
+
+    <!-- ═══ UI CONTAINER: 容器化界面 ═══ -->
+    <section class="ui-container">
+        <div class="app-icon">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+                <g fill="#D4952A">
+                    <rect x="22" y="22" width="8" height="8" rx="2.5"/><rect x="34" y="22" width="8" height="8" rx="2.5"/><rect x="46" y="22" width="8" height="8" rx="2.5"/><rect x="58" y="22" width="8" height="8" rx="2.5"/><rect x="70" y="22" width="8" height="8" rx="2.5"/>
+                    <rect x="46" y="34" width="8" height="8" rx="2.5"/><rect x="58" y="34" width="8" height="8" rx="2.5"/><rect x="34" y="46" width="8" height="8" rx="2.5"/><rect x="46" y="46" width="8" height="8" rx="2.5"/><rect x="22" y="58" width="8" height="8" rx="2.5"/><rect x="34" y="58" width="8" height="8" rx="2.5"/>
+                    <rect x="22" y="70" width="8" height="8" rx="2.5"/><rect x="34" y="70" width="8" height="8" rx="2.5"/><rect x="46" y="70" width="8" height="8" rx="2.5"/><rect x="58" y="70" width="8" height="8" rx="2.5"/><rect x="70" y="70" width="8" height="8" rx="2.5"/>
+                </g>
+            </svg>
+        </div>
+        <h2>容器化界面 · UI Container</h2>
+        <p>点阵 Z 置于一枚圆角方形容器中，模拟浏览器扩展图标的真实形态。磨砂玻璃质感加上微阴影，暗示这是一件可交互的数字产品。</p>
+    </section>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer class="footer-bar">
+        <div class="color-dots">
+            <span style="background:#D4952A"></span>
+            <span style="background:#E8B84B"></span>
+            <span style="background:#B8781E"></span>
+            <span style="background:#3D2E1A"></span>
+            <span style="background:#FEFAF3;border:1px solid rgba(139,115,85,0.15)"></span>
+        </div>
+        <p class="footer-text">
+            Ziqi Tab · 点阵 Z 标识系统<br>
+            暖琥珀 #D4952A · 加粗斜线 · 圆角方块点阵 · 2026<br>
+            <a href="svg/refinements/dot-z-bold.svg">下载 SVG</a> · <a href="../dot-z-bold.png">下载 PNG (1024×1024)</a>
+        </p>
+    </footer>
+
+</body>
+</html>

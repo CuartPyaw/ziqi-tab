@@ -1,0 +1,27 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 点阵 Z · 方框收束：整个 Z 被约束在柔和圆角方框中，更像扩展图标 -->
+  <rect x="15" y="15" width="70" height="70" rx="14" fill="none" stroke="#D4952A" stroke-width="1.5" opacity="0.2"/>
+  <g fill="#D4952A">
+    <!-- Row 0 -->
+    <rect x="24" y="26" width="7" height="7" rx="2"/>
+    <rect x="35" y="26" width="7" height="7" rx="2"/>
+    <rect x="46" y="26" width="7" height="7" rx="2"/>
+    <rect x="57" y="26" width="7" height="7" rx="2"/>
+    <rect x="68" y="26" width="7" height="7" rx="2"/>
+    <!-- Row 1 -->
+    <rect x="46" y="37" width="7" height="7" rx="2"/>
+    <rect x="57" y="37" width="7" height="7" rx="2"/>
+    <!-- Row 2 -->
+    <rect x="35" y="48" width="7" height="7" rx="2"/>
+    <rect x="46" y="48" width="7" height="7" rx="2"/>
+    <!-- Row 3 -->
+    <rect x="24" y="59" width="7" height="7" rx="2"/>
+    <rect x="35" y="59" width="7" height="7" rx="2"/>
+    <!-- Row 4 -->
+    <rect x="24" y="70" width="7" height="7" rx="2"/>
+    <rect x="35" y="70" width="7" height="7" rx="2"/>
+    <rect x="46" y="70" width="7" height="7" rx="2"/>
+    <rect x="57" y="70" width="7" height="7" rx="2"/>
+    <rect x="68" y="70" width="7" height="7" rx="2"/>
+  </g>
+</svg>

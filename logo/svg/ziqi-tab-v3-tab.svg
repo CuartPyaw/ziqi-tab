@@ -1,0 +1,8 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 标签：浏览器标签页的几何抽象，圆角带来亲和力 -->
+  <path d="M 25 68 L 25 35 Q 25 25 35 25 L 65 25 Q 75 25 75 35 L 75 68" fill="none" stroke="#D4952A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="32" y1="42" x2="68" y2="42" stroke="#D4952A" stroke-width="2.5" stroke-linecap="round" opacity="0.35"/>
+  <line x1="32" y1="52" x2="55" y2="52" stroke="#D4952A" stroke-width="2.5" stroke-linecap="round" opacity="0.25"/>
+  <line x1="32" y1="60" x2="62" y2="60" stroke="#D4952A" stroke-width="2.5" stroke-linecap="round" opacity="0.2"/>
+  <circle cx="50" cy="31" r="3" fill="#D4952A" opacity="0.6"/>
+</svg>

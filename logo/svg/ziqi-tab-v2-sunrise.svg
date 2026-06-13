@@ -1,0 +1,8 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 晨光：暖阳从地平线升起，新标签页是每一天的起点 -->
+  <line x1="18" y1="62" x2="82" y2="62" stroke="#D4952A" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 33 62 A 17 17 0 0 0 67 62 Z" fill="#D4952A"/>
+  <line x1="50" y1="38" x2="50" y2="32" stroke="#D4952A" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="42" y1="41" x2="37" y2="36" stroke="#D4952A" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+  <line x1="58" y1="41" x2="63" y2="36" stroke="#D4952A" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+</svg>

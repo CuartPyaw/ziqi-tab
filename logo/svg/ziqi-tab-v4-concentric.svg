@@ -1,0 +1,7 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 同心：层层嵌套的圆角方形，如暖意涟漪般扩散 -->
+  <rect x="17" y="17" width="66" height="66" rx="16" fill="none" stroke="#D4952A" stroke-width="1.5" opacity="0.25"/>
+  <rect x="27" y="27" width="46" height="46" rx="12" fill="none" stroke="#D4952A" stroke-width="2" opacity="0.45"/>
+  <rect x="37" y="37" width="26" height="26" rx="8" fill="none" stroke="#D4952A" stroke-width="2.5" opacity="0.7"/>
+  <rect x="45" y="45" width="10" height="10" rx="5" fill="#D4952A"/>
+</svg>

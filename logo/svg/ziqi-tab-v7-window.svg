@@ -1,0 +1,12 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 之窗：浏览器窗口的极简抽象，左上窗格点亮代表新标签页的启程 -->
+  <defs>
+    <clipPath id="pane">
+      <rect x="22" y="22" width="28" height="28"/>
+    </clipPath>
+  </defs>
+  <rect x="22" y="22" width="28" height="28" fill="#D4952A" clip-path="url(#pane)"/>
+  <rect x="22" y="22" width="56" height="56" rx="4" fill="none" stroke="#D4952A" stroke-width="3.5"/>
+  <line x1="50" y1="22" x2="50" y2="78" stroke="#D4952A" stroke-width="3"/>
+  <line x1="22" y1="50" x2="78" y2="50" stroke="#D4952A" stroke-width="3"/>
+</svg>

@@ -1,0 +1,7 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 拱门：打开新标签页，就是打开一扇通往无限可能的门 -->
+  <rect x="22" y="42" width="13" height="38" rx="6.5" fill="#D4952A"/>
+  <rect x="65" y="42" width="13" height="38" rx="6.5" fill="#D4952A"/>
+  <path d="M 28.5 42 Q 50 18 71.5 42" fill="none" stroke="#D4952A" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="50" cy="63" r="5.5" fill="#D4952A" opacity="0.65"/>
+</svg>

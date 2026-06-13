@@ -1,0 +1,26 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 点阵 Z · 加粗斜线：对角加宽为 2 点，Z 字更清晰有力 -->
+  <g fill="#D4952A">
+    <!-- Row 0: full top bar -->
+    <rect x="22" y="22" width="8" height="8" rx="2.5"/>
+    <rect x="34" y="22" width="8" height="8" rx="2.5"/>
+    <rect x="46" y="22" width="8" height="8" rx="2.5"/>
+    <rect x="58" y="22" width="8" height="8" rx="2.5"/>
+    <rect x="70" y="22" width="8" height="8" rx="2.5"/>
+    <!-- Row 1: diagonal width 2 -->
+    <rect x="46" y="34" width="8" height="8" rx="2.5"/>
+    <rect x="58" y="34" width="8" height="8" rx="2.5"/>
+    <!-- Row 2: diagonal width 2 -->
+    <rect x="34" y="46" width="8" height="8" rx="2.5"/>
+    <rect x="46" y="46" width="8" height="8" rx="2.5"/>
+    <!-- Row 3: diagonal width 2 -->
+    <rect x="22" y="58" width="8" height="8" rx="2.5"/>
+    <rect x="34" y="58" width="8" height="8" rx="2.5"/>
+    <!-- Row 4: full bottom bar -->
+    <rect x="22" y="70" width="8" height="8" rx="2.5"/>
+    <rect x="34" y="70" width="8" height="8" rx="2.5"/>
+    <rect x="46" y="70" width="8" height="8" rx="2.5"/>
+    <rect x="58" y="70" width="8" height="8" rx="2.5"/>
+    <rect x="70" y="70" width="8" height="8" rx="2.5"/>
+  </g>
+</svg>
