@@ -350,11 +350,4 @@ export function initSearch() {
     renderTriggerIcon();
   });
 
-  // Refocus search input when clicking anywhere on the page background
-  _addClean(document, 'click', (e) => {
-    const tag = e.target.tagName;
-    if (tag === 'BODY' || tag === 'HTML' || e.target.classList.contains('container')) {
-      elInput.focus();
-    }
-  });
 }
