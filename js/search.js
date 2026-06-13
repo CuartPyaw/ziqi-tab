@@ -40,9 +40,8 @@ function saveCustomEngines(map) {
   localStorage.setItem(CUSTOM_KEY, JSON.stringify(arr));
 }
 
-function getAllEngines() {
-  const customs = loadCustomEngines();
-  const all = { ...BUILTIN_ENGINES, ...customs };
+export function getAllEngines() {
+  const all = getAllEnginesMap();
   const order = getEngineOrder();
   return order.map(id => all[id]).filter(Boolean);
 }
@@ -64,22 +63,19 @@ function saveEngineOrder(order) {
   localStorage.setItem(ORDER_KEY, JSON.stringify(order));
 }
 
-function engineIconSrc(key) {
-  const all = { ...BUILTIN_ENGINES, ...loadCustomEngines() };
-  return all[key]?.icon || '';
+function getAllEnginesMap() {
+  return { ...BUILTIN_ENGINES, ...loadCustomEngines() };
 }
 
 export function getCurrentEngine() {
-  const all = { ...BUILTIN_ENGINES, ...loadCustomEngines() };
+  const all = getAllEnginesMap();
   return all[currentEngine] || BUILTIN_ENGINES.google;
 }
-
-export { getAllEngines };
 
 /* ── Render ────────────────────────────── */
 
 function renderTriggerIcon() {
-  const all = { ...BUILTIN_ENGINES, ...loadCustomEngines() };
+  const all = getAllEnginesMap();
   const engine = all[currentEngine];
   elEngineIcon.src = engine?.icon || '';
   elEngineIcon.alt = engine?.name || '';
@@ -148,7 +144,7 @@ function toggleMenu() {
 /* ── Select ────────────────────────────── */
 
 function selectEngine(key, skipClose = false) {
-  const all = { ...BUILTIN_ENGINES, ...loadCustomEngines() };
+  const all = getAllEnginesMap();
   if (!all[key]) return;
   currentEngine = key;
   localStorage.setItem(STORAGE_KEY, key);
@@ -168,7 +164,7 @@ function search(query) {
 export function initSearch() {
   // Restore saved engine preference
   const saved = localStorage.getItem(STORAGE_KEY);
-  const all = { ...BUILTIN_ENGINES, ...loadCustomEngines() };
+  const all = getAllEnginesMap();
   if (saved && all[saved]) {
     currentEngine = saved;
   }
