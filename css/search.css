@@ -135,6 +135,10 @@
   flex-shrink: 0;
 }
 
+.engine-icon[hidden] {
+  display: none;
+}
+
 [data-theme="dark"] .engine-icon,
 [data-theme="dark"] .engine-option-icon {
   filter: invert(1);
