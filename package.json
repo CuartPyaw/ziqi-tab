@@ -3,7 +3,8 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "pack": "bash pack.sh"
   },
   "devDependencies": {
     "jsdom": "^25.0.0",
