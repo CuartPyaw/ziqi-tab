@@ -101,6 +101,10 @@
   flex-shrink: 0;
 }
 
+.engine-letter[hidden] {
+  display: none;
+}
+
 /* Chevron button — click to open list */
 .engine-chevron-btn {
   display: flex;
