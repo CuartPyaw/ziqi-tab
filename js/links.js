@@ -90,6 +90,7 @@ function render() {
     a.className = 'link-item';
     a.href = link.url;
     a.title = link.title;
+    a.draggable = true;
     a.setAttribute('data-id', link.id);
 
     // Icon wrapper
@@ -221,6 +222,75 @@ function handleContextMenu(e) {
   if (id) openDialog(id);
 }
 
+/* ── Drag & Drop ───────────────────────── */
+
+let dragSourceIndex = -1;
+let dragOverTarget = null;
+
+function handleDragStart(e) {
+  const a = e.target.closest('.link-item');
+  if (!a) return;
+  dragSourceIndex = links.findIndex((l) => l.id === a.getAttribute('data-id'));
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', ''); // Required for Firefox
+  a.classList.add('dragging');
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+
+  const a = e.target.closest('.link-item');
+  if (a === dragOverTarget) return;
+
+  if (dragOverTarget) dragOverTarget.classList.remove('drag-over');
+  if (a) {
+    a.classList.add('drag-over');
+    dragOverTarget = a;
+  } else {
+    dragOverTarget = null;
+  }
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  if (dragSourceIndex === -1) return;
+
+  const targetA = e.target.closest('.link-item');
+  let targetIndex;
+
+  if (targetA) {
+    const targetId = targetA.getAttribute('data-id');
+    targetIndex = links.findIndex((l) => l.id === targetId);
+  } else if (e.target.closest('.link-add')) {
+    // Dropped on the add button → append to end
+    targetIndex = links.length;
+  } else {
+    return;
+  }
+
+  if (targetIndex === -1 || targetIndex === dragSourceIndex) return;
+
+  const [moved] = links.splice(dragSourceIndex, 1);
+  // Insert at the original target position — the target shifts naturally
+  // when source < target (splice removed one before it), so original
+  // targetIndex is already the correct insertion point.
+  links.splice(targetIndex, 0, moved);
+
+  save();
+  render();
+}
+
+function handleDragEnd(e) {
+  const a = e.target.closest('.link-item');
+  if (a) a.classList.remove('dragging');
+  if (dragOverTarget) {
+    dragOverTarget.classList.remove('drag-over');
+    dragOverTarget = null;
+  }
+  dragSourceIndex = -1;
+}
+
 /* ── Init ─────────────────────────────── */
 
 export { domainToSlug, iconUrl, resolveIconUrl, fallbackLetter };
@@ -315,4 +385,10 @@ export function initLinks() {
       }
     });
   });
+
+  // Drag & drop reorder
+  elGrid.addEventListener('dragstart', handleDragStart);
+  elGrid.addEventListener('dragover', handleDragOver);
+  elGrid.addEventListener('drop', handleDrop);
+  elGrid.addEventListener('dragend', handleDragEnd);
 }

@@ -307,3 +307,118 @@ describe('resolveIconUrl (unit)', () => {
     expect(resolveIconUrl(link)).toBeNull();
   });
 });
+
+describe('drag and drop reorder', () => {
+  beforeEach(() => {
+    initLinks();
+  });
+
+  /**
+   * Dispatch a synthetic drag event with a dataTransfer property.
+   * Uses a plain Event + Object.defineProperty to avoid depending on
+   * DragEvent constructor (not implemented in jsdom).
+   */
+  function dispatchDragEvent(target, type, dataTransfer, cancelable = false) {
+    const event = new Event(type, { bubbles: true, cancelable });
+    Object.defineProperty(event, 'dataTransfer', {
+      value: dataTransfer,
+      writable: false,
+    });
+    target.dispatchEvent(event);
+  }
+
+  function dragAndDrop(sourceIndex, targetIndex) {
+    const items = document.querySelectorAll('.link-item');
+    const source = items[sourceIndex];
+    const target = items[targetIndex];
+
+    const dt = new DataTransfer();
+
+    dispatchDragEvent(source, 'dragstart', dt);
+    dispatchDragEvent(target, 'dragover', dt, true);
+    dispatchDragEvent(target, 'drop', dt, true);
+    dispatchDragEvent(source, 'dragend', dt);
+  }
+
+  it('reorders links: first item dragged to last position', () => {
+    // Default order: YouTube, X, GitHub
+    dragAndDrop(0, 2); // Drag YouTube to GitHub position
+
+    const items = document.querySelectorAll('.link-item');
+    expect(items[0].getAttribute('title')).toBe('X');
+    expect(items[1].getAttribute('title')).toBe('GitHub');
+    expect(items[2].getAttribute('title')).toBe('YouTube');
+
+    const stored = JSON.parse(localStorage.getItem('ziqi-links'));
+    expect(stored[0].title).toBe('X');
+    expect(stored[1].title).toBe('GitHub');
+    expect(stored[2].title).toBe('YouTube');
+  });
+
+  it('reorders links: last item dragged to first position', () => {
+    dragAndDrop(2, 0); // Drag GitHub to YouTube position
+
+    const items = document.querySelectorAll('.link-item');
+    expect(items[0].getAttribute('title')).toBe('GitHub');
+    expect(items[1].getAttribute('title')).toBe('YouTube');
+    expect(items[2].getAttribute('title')).toBe('X');
+
+    const stored = JSON.parse(localStorage.getItem('ziqi-links'));
+    expect(stored[0].title).toBe('GitHub');
+    expect(stored[1].title).toBe('YouTube');
+    expect(stored[2].title).toBe('X');
+  });
+
+  it('does nothing when dragging to the same position', () => {
+    dragAndDrop(1, 1); // X → X (same position)
+
+    const items = document.querySelectorAll('.link-item');
+    expect(items[0].getAttribute('title')).toBe('YouTube');
+    expect(items[1].getAttribute('title')).toBe('X');
+    expect(items[2].getAttribute('title')).toBe('GitHub');
+  });
+
+  it('adds .dragging class on dragstart and .drag-over on target', () => {
+    const items = document.querySelectorAll('.link-item');
+    const source = items[0];
+    const target = items[1];
+
+    const dt = new DataTransfer();
+    dispatchDragEvent(source, 'dragstart', dt);
+
+    expect(source.classList.contains('dragging')).toBe(true);
+
+    dispatchDragEvent(target, 'dragover', dt, true);
+
+    expect(target.classList.contains('drag-over')).toBe(true);
+  });
+
+  it('cleans up .dragging class on dragend (cancel scenario)', () => {
+    const items = document.querySelectorAll('.link-item');
+    const source = items[0];
+
+    const dt = new DataTransfer();
+    dispatchDragEvent(source, 'dragstart', dt);
+    expect(source.classList.contains('dragging')).toBe(true);
+
+    dispatchDragEvent(source, 'dragend', dt);
+    expect(source.classList.contains('dragging')).toBe(false);
+  });
+
+  it('appends to end when dropping on the add button', () => {
+    const items = document.querySelectorAll('.link-item');
+    const source = items[0]; // YouTube
+
+    const addBtn = document.querySelector('.link-add');
+
+    const dt = new DataTransfer();
+    dispatchDragEvent(source, 'dragstart', dt);
+    dispatchDragEvent(addBtn, 'dragover', dt, true);
+    dispatchDragEvent(addBtn, 'drop', dt, true);
+
+    const newItems = document.querySelectorAll('.link-item');
+    expect(newItems[0].getAttribute('title')).toBe('X');
+    expect(newItems[1].getAttribute('title')).toBe('GitHub');
+    expect(newItems[2].getAttribute('title')).toBe('YouTube');
+  });
+});

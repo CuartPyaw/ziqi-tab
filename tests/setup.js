@@ -37,6 +37,28 @@ const matchMediaMock = (query) => ({
 });
 vi.stubGlobal('matchMedia', matchMediaMock);
 
+// ── DataTransfer Polyfill ──────────────────
+// jsdom does not implement DataTransfer / DragEvent.dataTransfer.
+// Provide minimal stubs so drag-and-drop tests can construct and dispatch events.
+
+class DataTransfer {
+  constructor() {
+    this._data = {};
+    this.effectAllowed = 'none';
+    this.dropEffect = 'none';
+  }
+  setData(format, data) {
+    this._data[format] = data;
+  }
+  getData(format) {
+    return this._data[format] || '';
+  }
+  clearData() {
+    this._data = {};
+  }
+}
+vi.stubGlobal('DataTransfer', DataTransfer);
+
 // ── DOM Skeleton ───────────────────────────
 
 document.body.innerHTML = `
