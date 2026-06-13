@@ -3,10 +3,13 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { initSearch } from '../js/search.js';
+import { initSearch, destroySearch } from '../js/search.js';
 
 describe('search', () => {
   beforeEach(() => {
+    // Remove event listeners from the previous test so initSearch starts clean
+    destroySearch();
+
     localStorage.clear();
     // Force Google as the default engine for a clean baseline
     localStorage.setItem('ziqi-engine', 'google');
@@ -16,6 +19,15 @@ describe('search', () => {
     document.getElementById('engine-chevron-btn').classList.remove('open');
     initSearch();
   });
+
+  function addCustomEngine(id, name, url) {
+    const existing = JSON.parse(localStorage.getItem('ziqi-engines') || '[]');
+    existing.push({ id, name, url, builtin: false });
+    localStorage.setItem('ziqi-engines', JSON.stringify(existing));
+    const order = JSON.parse(localStorage.getItem('ziqi-engine-order') || '["google","bing","duckduckgo"]');
+    order.push(id);
+    localStorage.setItem('ziqi-engine-order', JSON.stringify(order));
+  }
 
   // ── Initialization ─────────────────────
 
@@ -151,5 +163,69 @@ describe('search', () => {
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
     expect(captured.href).toBe('');
     window.location = origLoc;
+  });
+
+  // ── Engine Cycling ──────────────────────
+
+  it('cycles to next engine when icon button is clicked', () => {
+    document.getElementById('engine-icon-btn').click();
+    expect(document.getElementById('engine-icon').src).toMatch(/\/icons\/bing\.svg$/);
+    expect(localStorage.getItem('ziqi-engine')).toBe('bing');
+  });
+
+  it('cycles back to first engine after last', () => {
+    // Select duckduckgo via menu to set the internal state
+    document.getElementById('engine-chevron-btn').click();
+    document.querySelector('[data-value="duckduckgo"]').click();
+    document.getElementById('engine-menu').dispatchEvent(new Event('animationend'));
+
+    document.getElementById('engine-icon-btn').click();
+    expect(document.getElementById('engine-icon').src).toMatch(/\/icons\/google\.svg$/);
+  });
+
+  it('does not cycle when only one engine exists', () => {
+    localStorage.setItem('ziqi-engine-order', '["google"]');
+    initSearch();
+    document.getElementById('engine-icon-btn').click();
+    expect(localStorage.getItem('ziqi-engine')).toBe('google');
+  });
+
+  // ── Tab Keyboard ────────────────────────
+
+  it('switches to next engine on Tab when input is focused', () => {
+    const input = document.getElementById('search-input');
+    input.focus();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: false, bubbles: true }));
+    expect(document.getElementById('engine-icon').src).toMatch(/\/icons\/bing\.svg$/);
+  });
+
+  it('switches to previous engine on Shift+Tab when input is focused', () => {
+    const input = document.getElementById('search-input');
+    input.focus();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }));
+    expect(document.getElementById('engine-icon').src).toMatch(/\/icons\/duckduckgo\.svg$/);
+  });
+
+  // ── Custom Engines ──────────────────────
+
+  it('shows custom engines in the menu', () => {
+    addCustomEngine('kagi-test', 'Kagi', 'https://kagi.com/search?q=');
+    document.getElementById('engine-chevron-btn').click();
+    const options = document.querySelectorAll('.engine-option');
+    expect(options.length).toBe(4);
+    expect(options[3].textContent).toContain('Kagi');
+  });
+
+  // ── engines-changed Event ───────────────
+
+  it('falls back to Google when current engine is deleted via engines-changed', () => {
+    addCustomEngine('kagi-test', 'Kagi', 'https://kagi.com/search?q=');
+    localStorage.setItem('ziqi-engine', 'kagi-test');
+    initSearch();
+
+    localStorage.setItem('ziqi-engines', '[]');
+    window.dispatchEvent(new CustomEvent('engines-changed'));
+
+    expect(document.getElementById('engine-icon').src).toMatch(/\/icons\/google\.svg$/);
   });
 });

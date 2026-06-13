@@ -22,6 +22,25 @@ const BUILTIN_ENGINES = {
 let currentEngine = 'google';
 let menuKeyHandler = null;
 
+/* ── Test/cleanup support ──────────────── */
+// Track permanent event listeners so destroySearch() can remove them.
+const _cleanups = [];
+
+function _addClean(target, type, fn, opts) {
+  target.addEventListener(type, fn, opts);
+  _cleanups.push(() => target.removeEventListener(type, fn));
+}
+
+/** Remove all listeners added by initSearch so a test can re-init cleanly. */
+export function destroySearch() {
+  for (const cleanup of _cleanups) cleanup();
+  _cleanups.length = 0;
+  if (menuKeyHandler) {
+    document.removeEventListener('keydown', menuKeyHandler);
+    menuKeyHandler = null;
+  }
+}
+
 /* ── Engine data layer ──────────────────── */
 
 function loadCustomEngines() {
@@ -271,25 +290,25 @@ export function initSearch() {
   renderTriggerIcon();
 
   // Icon button click → cycle to next engine
-  elIconBtn.addEventListener('click', (e) => {
+  _addClean(elIconBtn, 'click', (e) => {
     e.stopPropagation();
     cycleEngine(+1);
   });
 
   // Chevron button click → toggle menu
-  elChevronBtn.addEventListener('click', (e) => {
+  _addClean(elChevronBtn, 'click', (e) => {
     e.stopPropagation();
     toggleMenu();
   });
 
   // Backdrop click closes menu
-  elBackdrop.addEventListener('click', (e) => {
+  _addClean(elBackdrop, 'click', (e) => {
     e.stopPropagation();
     closeMenu();
   });
 
   // Keyboard: Escape closes menu, Tab/Shift+Tab cycles engine when input focused
-  document.addEventListener('keydown', (e) => {
+  _addClean(document, 'keydown', (e) => {
     // Escape → close menu
     if (e.key === 'Escape' && !elMenu.hasAttribute('hidden')) {
       closeMenu();
@@ -310,7 +329,7 @@ export function initSearch() {
   });
 
   // Search on Enter
-  elInput.addEventListener('keydown', (e) => {
+  _addClean(elInput, 'keydown', (e) => {
     if (e.key === 'Enter') {
       const q = elInput.value.trim();
       if (q) search(q);
@@ -318,12 +337,12 @@ export function initSearch() {
   });
 
   // Re-render icons when theme changes
-  window.addEventListener('theme-changed', () => {
+  _addClean(window, 'theme-changed', () => {
     renderTriggerIcon();
   });
 
   // Listen for engine list changes from settings
-  window.addEventListener('engines-changed', () => {
+  _addClean(window, 'engines-changed', () => {
     const engines = getAllEngines();
     if (!engines.find(e => e.id === currentEngine)) {
       selectEngine('google', true);
@@ -332,7 +351,7 @@ export function initSearch() {
   });
 
   // Refocus search input when clicking anywhere on the page background
-  document.addEventListener('click', (e) => {
+  _addClean(document, 'click', (e) => {
     const tag = e.target.tagName;
     if (tag === 'BODY' || tag === 'HTML' || e.target.classList.contains('container')) {
       elInput.focus();
