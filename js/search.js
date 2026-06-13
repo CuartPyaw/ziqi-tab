@@ -85,10 +85,18 @@ function cycleEngine(direction) {
 /* ── Render ────────────────────────────── */
 
 function renderTriggerIcon() {
-  const all = getAllEnginesMap();
-  const engine = all[currentEngine];
-  elEngineIcon.src = engine?.icon || '';
-  elEngineIcon.alt = engine?.name || '';
+  const engine = getCurrentEngine();
+  if (engine.builtin && engine.icon) {
+    elEngineIcon.src = engine.icon;
+    elEngineIcon.alt = engine.name;
+    elEngineIcon.removeAttribute('hidden');
+    elEngineLetter.setAttribute('hidden', '');
+  } else {
+    elEngineIcon.setAttribute('hidden', '');
+    elEngineLetter.textContent = engine.name.charAt(0).toUpperCase();
+    elEngineLetter.removeAttribute('hidden');
+  }
+  elIconBtn.title = `${engine.name} · 点击切换 | Tab 循环`;
 }
 
 function renderMenu() {
