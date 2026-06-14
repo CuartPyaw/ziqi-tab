@@ -121,7 +121,7 @@ body::before {
   padding: 2rem;
   width: 100%;
   max-width: 720px;
-  overflow-x: hidden;  /* clip Animate.css fade overshoot → no horizontal scrollbar flash */
+  overflow: hidden;  /* clip Animate.css bounce overshoot → no scrollbar flash */
   --animate-duration: 0.7s;
   visibility: hidden;
 }
@@ -142,13 +142,11 @@ body::before {
 
 .page {
   display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   width: 100%;
-  min-height: 100vh;
 }
 
 .page--active {
   display: flex;
+  flex-direction: column;
+  align-items: center;
 }
