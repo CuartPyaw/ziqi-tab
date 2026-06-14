@@ -268,10 +268,12 @@ export function switchToPage(pageName) {
 
   if (current) current.classList.remove('page--active');
 
-  target.classList.add('page--active', 'animate__animated', 'animate__fadeInRight');
+  const animClass = pageName === 'pomodoro' ? 'animate__fadeInRight' : 'animate__fadeInLeft';
+
+  target.classList.add('page--active', 'animate__animated', animClass);
 
   target.addEventListener('animationend', () => {
-    target.classList.remove('animate__animated', 'animate__fadeInRight');
+    target.classList.remove('animate__animated', animClass);
   }, { once: true });
 
   // Reflect active state on the toggle button

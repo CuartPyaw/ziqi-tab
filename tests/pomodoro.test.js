@@ -369,11 +369,18 @@ describe('Pomodoro Timer', () => {
       expect(mainPage.classList.contains('page--active')).toBe(true);
     });
 
-    it('adds fadeInRight animation class to incoming page', () => {
+    it('adds fadeInRight when entering pomodoro, fadeInLeft when returning to main', () => {
       switchToPage('pomodoro');
       const pomoPage = document.querySelector('.page--pomodoro');
       expect(pomoPage.classList.contains('animate__animated')).toBe(true);
       expect(pomoPage.classList.contains('animate__fadeInRight')).toBe(true);
+
+      // Dispatch animationend to clean up before switching back
+      pomoPage.dispatchEvent(new Event('animationend'));
+      switchToPage('main');
+      const mainPage = document.querySelector('.page--main');
+      expect(mainPage.classList.contains('animate__animated')).toBe(true);
+      expect(mainPage.classList.contains('animate__fadeInLeft')).toBe(true);
     });
 
     it('removes animation classes after animationend', () => {
