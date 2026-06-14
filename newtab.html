@@ -15,10 +15,12 @@
   <link rel="stylesheet" href="css/search.css">
   <link rel="stylesheet" href="css/links.css">
   <link rel="stylesheet" href="css/settings.css">
+  <link rel="stylesheet" href="css/pomodoro.css">
 </head>
 <body>
   <div id="nav-progress" class="nav-progress"></div>
   <div class="container">
+    <div class="page page--main page--active">
     <header class="hero">
       <div class="hero-stage">
         <div id="clock-display">
@@ -64,6 +66,58 @@
     <section class="quick-links" id="quick-links">
       <ul class="links-grid" id="links-grid"></ul>
     </section>
+    </div>
+
+    <div class="page page--pomodoro">
+      <div class="pomodoro-container">
+        <div class="pomodoro-modes">
+          <button class="pomodoro-mode-btn active" data-mode="focus">专注</button>
+          <button class="pomodoro-mode-btn" data-mode="shortBreak">短休</button>
+          <button class="pomodoro-mode-btn" data-mode="longBreak">长休</button>
+        </div>
+
+        <div class="pomodoro-timer">
+          <svg class="pomodoro-ring" viewBox="0 0 240 240">
+            <circle class="pomodoro-ring-bg" cx="120" cy="120" r="110"
+                    fill="none" stroke="var(--border)" stroke-width="4"/>
+            <circle class="pomodoro-ring-fg" id="pomodoro-progress-ring"
+                    cx="120" cy="120" r="110"
+                    fill="none" stroke="var(--accent)" stroke-width="4"
+                    stroke-linecap="round"
+                    stroke-dasharray="691.15" stroke-dashoffset="0"
+                    transform="rotate(-90 120 120)"/>
+          </svg>
+          <div class="pomodoro-time" id="pomodoro-time">25:00</div>
+        </div>
+
+        <div class="pomodoro-controls">
+          <button class="pomodoro-btn" id="pomodoro-start" title="开始">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+          </button>
+          <button class="pomodoro-btn" id="pomodoro-pause" title="暂停" style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="6" y="4" width="4" height="16"/>
+              <rect x="14" y="4" width="4" height="16"/>
+            </svg>
+          </button>
+          <button class="pomodoro-btn" id="pomodoro-reset" title="重置">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1 4 1 10 7 10"/>
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="pomodoro-sessions" id="pomodoro-dots">
+          <span class="pomodoro-dot"></span>
+          <span class="pomodoro-dot"></span>
+          <span class="pomodoro-dot"></span>
+          <span class="pomodoro-dot"></span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <footer class="settings-bar">
@@ -71,6 +125,14 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/>
           <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+        </svg>
+      </button>
+      <button id="pomodoro-toggle" class="settings-btn" title="番茄钟">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="13" r="8"/>
+          <path d="M12 9v4l2.5 2.5"/>
+          <path d="M9 2h6"/>
+          <path d="M12 2v2"/>
         </svg>
       </button>
       <button id="theme-toggle" class="settings-btn" title="切换深色/浅色模式">

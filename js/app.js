@@ -7,6 +7,7 @@ import { initClock } from './clock.js';
 import { initSearch } from './search.js';
 import { initLinks } from './links.js';
 import { initSettings } from './settings.js';
+import { initPomodoro } from './pomodoro.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Theme — sets data-theme attr before anything renders
@@ -24,14 +25,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // 5. Settings — panel with search bar width control
   initSettings();
 
+  // 6. Pomodoro — timer page, toggle button in settings bar
+  initPomodoro();
+
   // 7. Theme toggle button
   document.getElementById('theme-toggle').addEventListener('click', () => {
     toggleTheme();
     window.dispatchEvent(new CustomEvent('theme-changed'));
   });
 
-  // 8. 新标签页打开动画 — bounceInUp
+  // 8. 新标签页打开动画 — bounceInUp on the main page
   const container = document.querySelector('.container');
   container.style.visibility = 'visible';
-  container.classList.add('animate__animated', 'animate__bounceInUp');
+  const mainPage = document.querySelector('.page--main');
+  mainPage.classList.add('animate__animated', 'animate__bounceInUp');
+  mainPage.addEventListener('animationend', () => {
+    mainPage.classList.remove('animate__animated', 'animate__bounceInUp');
+  }, { once: true });
 });
