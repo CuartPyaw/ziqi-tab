@@ -51,9 +51,10 @@
      /* 保留原有 background / box-shadow / color transition */
    }
 
-   /* 点击：加速脉动（单次） */
+   /* 点击：加速脉动（单次，覆盖 :hover 的 infinite） */
    .link-item.click-pulse {
      animation-duration: 0.4s;
+     animation-iteration-count: 1;
    }
    ```
 
