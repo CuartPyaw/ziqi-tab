@@ -299,8 +299,7 @@ export function initLinks() {
   links = load();
   render();
 
-  // Click with Dock bounce animation (intercept navigation to play animation first)
-  let clickTimer = null;
+  // Click with pulse animation → progress bar → navigate (two-stage)
 
   elGrid.addEventListener('click', (e) => {
     // Only intercept primary-button left clicks without modifier keys.
@@ -311,48 +310,26 @@ export function initLinks() {
     if (!a || !a.href) return;
     e.preventDefault();
 
-    // Double-click detection: second click cancels the pending bounce
-    if (clickTimer) {
-      clearTimeout(clickTimer);
-      clickTimer = null;
-      return;
-    }
-
-    const iconWrap = a.querySelector('.link-icon-wrapper');
-    if (!iconWrap) return;
-
     const href = a.href;
-
     const progressBar = document.getElementById('nav-progress');
 
-    clickTimer = setTimeout(() => {
-      clickTimer = null;
-      iconWrap.classList.add('bouncing');
+    // Stage 1: click pulse (faster than hover, single cycle)
+    a.classList.add('click-pulse', 'animate__pulse');
+
+    a.addEventListener('animationend', function onPulseEnd() {
+      a.removeEventListener('animationend', onPulseEnd);
+      a.classList.remove('click-pulse', 'animate__pulse');
+
+      // Stage 2: nav progress bar
       if (progressBar) {
         progressBar.style.width = '100%';
         progressBar.addEventListener('transitionend', () => {
           window.location.href = href;
         }, { once: true });
       } else {
-        iconWrap.addEventListener('animationend', () => {
-          iconWrap.classList.remove('bouncing');
-          window.location.href = href;
-        }, { once: true });
+        window.location.href = href;
       }
-    }, 200);
-  });
-
-  // Double-click to edit (fires between click events, prevents navigation)
-  elGrid.addEventListener('dblclick', (e) => {
-    const a = e.target.closest('.link-item');
-    if (!a) return;
-    e.preventDefault();
-    if (clickTimer) {
-      clearTimeout(clickTimer);
-      clickTimer = null;
-    }
-    const id = a.getAttribute('data-id');
-    if (id) openDialog(id);
+    }, { once: true });
   });
 
   // Right-click to edit
