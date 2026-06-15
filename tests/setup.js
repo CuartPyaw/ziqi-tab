@@ -62,6 +62,7 @@ vi.stubGlobal('DataTransfer', DataTransfer);
 // ── DOM Skeleton ───────────────────────────
 
 document.body.innerHTML = `
+<div id="nav-progress" class="nav-progress"></div>
 <div class="container">
   <div class="page page--main page--active">
   <header class="hero">
