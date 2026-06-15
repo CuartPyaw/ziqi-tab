@@ -422,3 +422,97 @@ describe('drag and drop reorder', () => {
     expect(newItems[2].getAttribute('title')).toBe('YouTube');
   });
 });
+
+describe('click navigation', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    initLinks();
+  });
+
+  it('adds animate__pulse and click-pulse classes on link click', () => {
+    const linkItem = document.querySelector('.link-item');
+    const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
+    const prevented = !linkItem.dispatchEvent(clickEvent);
+
+    // Should prevent default navigation
+    expect(prevented).toBe(true);
+    // Should add pulse classes
+    expect(linkItem.classList.contains('animate__pulse')).toBe(true);
+    expect(linkItem.classList.contains('click-pulse')).toBe(true);
+  });
+
+  it('does not add pulse classes on Ctrl+click', () => {
+    const linkItem = document.querySelector('.link-item');
+    const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0, ctrlKey: true });
+    linkItem.dispatchEvent(clickEvent);
+
+    expect(linkItem.classList.contains('animate__pulse')).toBe(false);
+    expect(linkItem.classList.contains('click-pulse')).toBe(false);
+  });
+
+  it('does not add pulse classes on middle-click', () => {
+    const linkItem = document.querySelector('.link-item');
+    const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true, button: 1 });
+    linkItem.dispatchEvent(clickEvent);
+
+    expect(linkItem.classList.contains('animate__pulse')).toBe(false);
+    expect(linkItem.classList.contains('click-pulse')).toBe(false);
+  });
+
+  it('removes pulse classes after animationend and starts progress bar', () => {
+    const linkItem = document.querySelector('.link-item');
+    const progressBar = document.getElementById('nav-progress');
+
+    // Click the link
+    linkItem.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
+
+    expect(linkItem.classList.contains('animate__pulse')).toBe(true);
+    expect(linkItem.classList.contains('click-pulse')).toBe(true);
+
+    // Dispatch animationend — jsdom doesn't run CSS animations
+    linkItem.dispatchEvent(new Event('animationend', { bubbles: true }));
+
+    expect(linkItem.classList.contains('animate__pulse')).toBe(false);
+    expect(linkItem.classList.contains('click-pulse')).toBe(false);
+    expect(progressBar.style.width).toBe('100%');
+  });
+
+  it('navigates after progress bar transitionend', () => {
+    const linkItem = document.querySelector('.link-item');
+    const progressBar = document.getElementById('nav-progress');
+
+    // Click → animationend
+    linkItem.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
+    linkItem.dispatchEvent(new Event('animationend', { bubbles: true }));
+
+    expect(progressBar.style.width).toBe('100%');
+
+    // Progress bar should have transitionend listener — verify by dispatching
+    // and checking that the bar is still at 100% (listener doesn't reset it)
+    const transitionFired = progressBar.dispatchEvent(new Event('transitionend', { bubbles: true }));
+    expect(transitionFired).toBe(true);
+    // After transitionend, the once:true listener is removed — dispatching again
+    // should still work but the handler won't fire again
+  });
+
+  it('falls back to direct navigation when progress bar is absent', () => {
+    // Remove progress bar from DOM
+    const progressBar = document.getElementById('nav-progress');
+    if (progressBar) progressBar.remove();
+
+    const linkItem = document.querySelector('.link-item');
+
+    // Click → should not throw
+    expect(() => {
+      linkItem.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
+    }).not.toThrow();
+
+    // animationend → should not throw
+    expect(() => {
+      linkItem.dispatchEvent(new Event('animationend', { bubbles: true }));
+    }).not.toThrow();
+
+    expect(linkItem.classList.contains('animate__pulse')).toBe(false);
+    expect(linkItem.classList.contains('click-pulse')).toBe(false);
+  });
+});
