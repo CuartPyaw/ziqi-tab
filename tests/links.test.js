@@ -77,9 +77,9 @@ describe('CRUD', () => {
     expect(document.getElementById('link-delete').hidden).toBe(true);
   });
 
-  it('opens dialog for editing when a link is double-clicked', () => {
-    const label = document.querySelector('.link-label');
-    label.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+  it('opens dialog for editing on right-click of a link item', () => {
+    const linkItem = document.querySelector('.link-item');
+    linkItem.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
 
     expect(document.getElementById('link-dialog').open).toBe(true);
     expect(document.getElementById('link-title').value).toBe('YouTube');
@@ -123,8 +123,8 @@ describe('CRUD', () => {
   });
 
   it('edits an existing link', () => {
-    // Double-click YouTube
-    document.querySelector('.link-label').dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    // Right-click YouTube
+    document.querySelector('.link-item').dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
     document.getElementById('link-title').value = 'YouTube Edited';
     document.getElementById('link-form').dispatchEvent(new Event('submit', { cancelable: true }));
 
@@ -133,8 +133,8 @@ describe('CRUD', () => {
   });
 
   it('deletes a link', () => {
-    // Double-click YouTube
-    document.querySelector('.link-label').dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    // Right-click YouTube
+    document.querySelector('.link-item').dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
     document.getElementById('link-delete').click();
 
     const links = JSON.parse(localStorage.getItem('ziqi-links'));
@@ -263,7 +263,7 @@ describe('custom icon URL', () => {
       { id: 'c4', title: 'HasIcon', url: 'https://example.com', icon: 'https://example.com/icon.svg' },
     ]));
     initLinks();
-    document.querySelector('.link-label').dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    document.querySelector('.link-item').dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
     expect(document.getElementById('link-icon').value).toBe('https://example.com/icon.svg');
   });
 
@@ -272,7 +272,7 @@ describe('custom icon URL', () => {
       { id: 'c5', title: 'HadIcon', url: 'https://example.com', icon: 'https://example.com/icon.svg' },
     ]));
     initLinks();
-    document.querySelector('.link-label').dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    document.querySelector('.link-item').dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
     document.getElementById('link-icon').value = '';
     document.getElementById('link-form').dispatchEvent(new Event('submit', { cancelable: true }));
 
