@@ -6,7 +6,47 @@ import { initTheme, toggleTheme } from './theme.js';
 import { initClock } from './clock.js';
 import { initSearch } from './search.js';
 import { initLinks } from './links.js';
+import { initBookmarks } from './bookmarks.js';
 import { initSettings } from './settings.js';
+
+/**
+ * Initialize content view switcher (quick links vs bookmarks).
+ */
+function initContentView() {
+  const defaultView = localStorage.getItem('ziqi-default-view') || 'links';
+  switchView(defaultView);
+
+  document.getElementById('content-switcher').addEventListener('click', (e) => {
+    const btn = e.target.closest('.content-switcher-btn');
+    if (!btn) return;
+    switchView(btn.dataset.view);
+  });
+
+  // Listen for default-view-changed from settings (do not switch current view)
+  window.addEventListener('default-view-changed', () => {
+    // Default preference updated; no view switch needed
+  });
+}
+
+/**
+ * Switch between links and bookmarks views.
+ */
+function switchView(view) {
+  const linksSection = document.getElementById('quick-links');
+  const bookmarksSection = document.getElementById('bookmarks-section');
+
+  document.querySelectorAll('.content-switcher-btn').forEach(btn => {
+    btn.classList.toggle('is-active', btn.dataset.view === view);
+  });
+
+  if (view === 'links') {
+    linksSection.style.display = '';
+    bookmarksSection.hidden = true;
+  } else {
+    linksSection.style.display = 'none';
+    bookmarksSection.hidden = false;
+  }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Theme — sets data-theme attr before anything renders
@@ -21,16 +61,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. Quick Links — grid + dialog CRUD; listens for theme-changed internally
   initLinks();
 
-  // 5. Settings — panel with search bar width control
+  // 5. Bookmarks — bookmark bar with folder navigation
+  initBookmarks();
+
+  // 6. Settings — panel with search bar width control
   initSettings();
 
-  // 6. Theme toggle button
+  // 7. Content view — switcher between quick links and bookmarks
+  initContentView();
+
+  // 8. Theme toggle button
   document.getElementById('theme-toggle').addEventListener('click', () => {
     toggleTheme();
     window.dispatchEvent(new CustomEvent('theme-changed'));
   });
 
-  // 7. 新标签页打开动画 — bounceInUp on the main page
+  // 9. 新标签页打开动画 — bounceInUp on the main page
   const container = document.querySelector('.container');
   container.style.visibility = 'visible';
   const mainPage = document.querySelector('.page--main');
