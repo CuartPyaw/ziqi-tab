@@ -20,6 +20,7 @@ const elEngineUrl = document.getElementById('engine-url');
 const WIDTH_KEY = 'ziqi-search-width';
 const CUSTOM_KEY = 'ziqi-engines';
 const ORDER_KEY = 'ziqi-engine-order';
+const VIEW_KEY = 'ziqi-default-view';
 
 /* ── Search bar width ──────────────────── */
 
@@ -48,6 +49,21 @@ function saveWidth(val) {
 
 function updateDisplay() {
   elValue.textContent = elSlider.value + 'px';
+}
+
+/* ── Default view ──────────────────────── */
+
+function getDefaultView() {
+  try {
+    const v = localStorage.getItem(VIEW_KEY);
+    if (v === 'links' || v === 'bookmarks') return v;
+  } catch (_) { /* fall through */ }
+  return 'links';
+}
+
+function saveDefaultView(view) {
+  localStorage.setItem(VIEW_KEY, view);
+  window.dispatchEvent(new CustomEvent('default-view-changed', { detail: { view } }));
 }
 
 /* ── Tab switching ─────────────────────── */
@@ -208,12 +224,26 @@ function getEngineOrderInternal() {
   return ['google', 'bing', 'duckduckgo', ...customs.map(e => e.id)];
 }
 
+/* ── Display settings ─────────────────── */
+
+function renderDisplaySettings() {
+  const view = getDefaultView();
+  const radios = document.querySelectorAll('input[name="default-view"]');
+  radios.forEach(radio => {
+    radio.checked = radio.value === view;
+    radio.addEventListener('change', () => {
+      if (radio.checked) saveDefaultView(radio.value);
+    });
+  });
+}
+
 /* ── Dialog ────────────────────────────── */
 
 function openDialog() {
   elSlider.value = storedWidth;
   updateDisplay();
   renderEngineList();
+  renderDisplaySettings();
   switchTab('search');
   elDialog.showModal();
 }

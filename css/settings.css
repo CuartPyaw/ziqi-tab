@@ -320,3 +320,24 @@
   color: var(--text-muted);
   margin: -0.25rem 0 1rem;
 }
+
+/* ── Radio buttons ────────────────────── */
+
+.settings-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.settings-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.settings-radio input[type="radio"] {
+  accent-color: var(--accent);
+}
