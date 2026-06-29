@@ -19,8 +19,6 @@ let elBackBtn = null;
 let elFolderTitle = null;
 let elEmptyState = null;
 let elEmptyText = null;
-let elContentSwitcher = null;
-let elQuickLinks = null;
 let initialized = false;
 
 /* ── Utilities ─────────────────────────── */
@@ -88,7 +86,7 @@ function renderBookmarkItem(node) {
   img.onerror = () => {
     const fb = document.createElement('div');
     fb.className = 'bookmark-icon-fallback';
-    fb.textContent = fallbackLetter(node.title);
+    fb.textContent = fallbackLetter(getLabel(node));
     img.replaceWith(fb);
   };
 
@@ -96,7 +94,7 @@ function renderBookmarkItem(node) {
     // No CDN URL could be derived — use fallback immediately
     const fb = document.createElement('div');
     fb.className = 'bookmark-icon-fallback';
-    fb.textContent = fallbackLetter(node.title);
+    fb.textContent = fallbackLetter(getLabel(node));
     iconWrap.appendChild(fb);
   } else {
     iconWrap.appendChild(img);
@@ -239,39 +237,7 @@ function loadAndRender() {
 
 /** Re-read the tree from the API and re-render (used by bookmark change listeners). */
 function refreshFromApi() {
-  if (elSection.hidden) return; // Only refresh when bookmarks view is visible
   loadAndRender();
-}
-
-/* ── Content Switcher ──────────────────── */
-
-function setupContentSwitcher() {
-  elContentSwitcher.addEventListener('click', e => {
-    const btn = e.target.closest('.content-switcher-btn');
-    if (!btn) return;
-
-    const view = btn.getAttribute('data-view');
-
-    // Toggle active class on the segmented control
-    elContentSwitcher.querySelectorAll('.content-switcher-btn').forEach(b => {
-      b.classList.remove('is-active');
-    });
-    btn.classList.add('is-active');
-
-    if (view === 'bookmarks') {
-      elQuickLinks.hidden = true;
-      elSection.hidden = false;
-      // Render or re-render bookmark view
-      if (rootNode) {
-        renderRoot();
-      } else {
-        loadAndRender();
-      }
-    } else {
-      elSection.hidden = true;
-      elQuickLinks.hidden = false;
-    }
-  });
 }
 
 /* ── Click Handling ────────────────────── */
@@ -373,11 +339,9 @@ export function initBookmarks() {
   elFolderTitle = document.getElementById('bookmark-folder-title');
   elEmptyState = document.getElementById('bookmark-empty-state');
   elEmptyText = document.getElementById('bookmark-empty-text');
-  elContentSwitcher = document.getElementById('content-switcher');
-  elQuickLinks = document.getElementById('quick-links');
 
   // Safety: if required DOM elements are missing, we are not on the extension page
-  if (!elGrid || !elSection || !elContentSwitcher || !elQuickLinks) return;
+  if (!elGrid || !elSection) return;
 
   initialized = true;
 
@@ -392,9 +356,6 @@ export function initBookmarks() {
 
   // Back button
   elBackBtn.addEventListener('click', goBack);
-
-  // Content switcher (links ↔ bookmarks)
-  setupContentSwitcher();
 
   // Click handling for bookmark and folder items
   setupClickHandler();
