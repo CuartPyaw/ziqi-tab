@@ -296,6 +296,20 @@ describe('click behavior', () => {
     expect(prevented).toBe(true);
     expect(link.classList.contains('animate__pulse')).toBe(true);
     expect(link.classList.contains('click-pulse')).toBe(true);
+
+    // Capture location to verify navigation
+    const origLoc = window.location;
+    delete window.location;
+    const captured = { href: '' };
+    window.location = captured;
+
+    // After animationend + transitionend, navigation should occur
+    const progressBar = document.getElementById('nav-progress');
+    link.dispatchEvent(new Event('animationend', { bubbles: true }));
+    progressBar.dispatchEvent(new Event('transitionend', { bubbles: true }));
+
+    expect(captured.href).toBe('https://github.com/');
+    window.location = origLoc;
   });
 
   it('does not intercept click with modifier keys', async () => {
@@ -303,12 +317,22 @@ describe('click behavior', () => {
     vi.stubGlobal('chrome', mockChrome);
     await import('../js/bookmarks.js');
 
+    // Capture location to verify navigation is NOT triggered
+    const origLoc = window.location;
+    delete window.location;
+    const captured = { href: '' };
+    window.location = captured;
+
     const link = document.querySelector('.bookmark-item:not(.is-folder)');
     const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0, ctrlKey: true });
     link.dispatchEvent(clickEvent);
 
     expect(link.classList.contains('animate__pulse')).toBe(false);
     expect(link.classList.contains('click-pulse')).toBe(false);
+
+    // Navigation should not have been triggered
+    expect(captured.href).toBe('');
+    window.location = origLoc;
   });
 
   it('navigates after animationend and transitionend', async () => {
@@ -332,11 +356,17 @@ describe('click behavior', () => {
     expect(link.classList.contains('click-pulse')).toBe(false);
     expect(progressBar.style.width).toBe('100%');
 
-    // transitionend → navigation would occur (jsdom does not support navigation)
-    // Verify the transitionend listener fires without throwing
-    expect(() => {
-      progressBar.dispatchEvent(new Event('transitionend', { bubbles: true }));
-    }).not.toThrow();
+    // Capture location to verify navigation
+    const origLoc = window.location;
+    delete window.location;
+    const captured = { href: '' };
+    window.location = captured;
+
+    // transitionend → navigation occurs
+    progressBar.dispatchEvent(new Event('transitionend', { bubbles: true }));
+
+    expect(captured.href).toBe('https://github.com/');
+    window.location = origLoc;
   });
 });
 
