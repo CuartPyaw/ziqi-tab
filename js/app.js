@@ -37,18 +37,16 @@ function initContentView() {
 function switchView(view) {
   const linksSection = document.getElementById('quick-links');
   const bookmarksSection = document.getElementById('bookmarks-section');
+  const showLinks = view === 'links';
 
   document.querySelectorAll('.content-switcher-btn').forEach(btn => {
     btn.classList.toggle('is-active', btn.dataset.view === view);
   });
 
-  if (view === 'links') {
-    linksSection.style.display = '';
-    bookmarksSection.hidden = true;
-  } else {
-    linksSection.style.display = 'none';
-    bookmarksSection.hidden = false;
-  }
+  linksSection.hidden = !showLinks;
+  linksSection.style.display = showLinks ? '' : 'none';
+  bookmarksSection.hidden = showLinks;
+  bookmarksSection.style.display = showLinks ? 'none' : '';
 }
 
 document.addEventListener('DOMContentLoaded', () => {
