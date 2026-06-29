@@ -206,6 +206,10 @@ function findFolderNodeById(id) {
 /* ── Load from Chrome API ──────────────── */
 
 function loadAndRender() {
+  loadAndRenderInternal([]);
+}
+
+function loadAndRenderInternal(prevFolderIds = []) {
   if (typeof chrome === 'undefined' || !chrome.bookmarks) {
     showEmpty('仅在扩展模式下可读取书签栏');
     return;
@@ -226,6 +230,11 @@ function loadAndRender() {
         rootNode = barRoot;
         hideEmpty();
         renderRoot();
+
+        // Restore folder path if available
+        if (prevFolderIds.length > 0) {
+          restoreFolderPath(prevFolderIds);
+        }
       } catch (_) {
         showEmpty('无法读取书签栏');
       }
@@ -235,9 +244,35 @@ function loadAndRender() {
   }
 }
 
-/** Re-read the tree from the API and re-render (used by bookmark change listeners). */
+/** Re-read the tree from the API and re-render preserving folder context. */
 function refreshFromApi() {
-  loadAndRender();
+  const prevFolderIds = folderStack.map(f => f.id);
+  loadAndRenderInternal(prevFolderIds);
+}
+
+/** Restore the deepest still-existing folder path after a re-render. */
+function restoreFolderPath(prevFolderIds) {
+  if (!rootNode || !rootNode.children) return;
+  let currentNodes = rootNode.children;
+  const restoredPath = [];
+
+  for (const id of prevFolderIds) {
+    const folder = currentNodes.find(n => n.id === id && n.children);
+    if (folder) {
+      restoredPath.push(folder);
+      currentNodes = folder.children;
+    } else {
+      break; // folder no longer exists
+    }
+  }
+
+  if (restoredPath.length > 0) {
+    folderStack = restoredPath;
+    const leaf = folderStack[folderStack.length - 1];
+    elFolderHeader.hidden = false;
+    elFolderTitle.textContent = leaf.title || '未命名文件夹';
+    renderBookmarks(leaf.children);
+  }
 }
 
 /* ── Click Handling ────────────────────── */
@@ -367,5 +402,3 @@ export function initBookmarks() {
   setupBookmarkListeners();
 }
 
-// Self-initialize when loaded as a module entry point
-initBookmarks();

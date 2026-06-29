@@ -23,8 +23,11 @@ function initContentView() {
   });
 
   // Listen for default-view-changed from settings (do not switch current view)
+  // Record default view preference from settings (no view switch needed;
+  // the new default applies on next new-tab load. This listener exists
+  // as an extension point for live default application.)
   window.addEventListener('default-view-changed', () => {
-    // Default preference updated; no view switch needed
+    // preference already saved by settings.js
   });
 }
 

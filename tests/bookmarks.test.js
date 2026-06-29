@@ -130,7 +130,8 @@ describe('rendering', () => {
   it('renders bookmark link cards from chrome.bookmarks.getTree()', async () => {
     const mockChrome = createMockChrome(fullTree);
     vi.stubGlobal('chrome', mockChrome);
-    await import('../js/bookmarks.js');
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
 
     const links = document.querySelectorAll('.bookmark-item:not(.is-folder)');
     expect(links.length).toBe(3);
@@ -143,7 +144,8 @@ describe('rendering', () => {
   it('renders folder cards', async () => {
     const mockChrome = createMockChrome(fullTree);
     vi.stubGlobal('chrome', mockChrome);
-    await import('../js/bookmarks.js');
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
 
     const folders = document.querySelectorAll('.bookmark-folder-item');
     expect(folders.length).toBe(2);
@@ -153,7 +155,8 @@ describe('rendering', () => {
   it('shows fallback title for folder with empty title', async () => {
     const mockChrome = createMockChrome(fullTree);
     vi.stubGlobal('chrome', mockChrome);
-    await import('../js/bookmarks.js');
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
 
     const folders = document.querySelectorAll('.bookmark-folder-item');
     const emptyFolder = folders[1];
@@ -165,7 +168,8 @@ describe('rendering', () => {
   it('derives label from hostname for bookmark with empty title', async () => {
     const mockChrome = createMockChrome(fullTree);
     vi.stubGlobal('chrome', mockChrome);
-    await import('../js/bookmarks.js');
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
 
     const links = document.querySelectorAll('.bookmark-item:not(.is-folder)');
     // Third link: id:7 has empty title, derives label from hostname
@@ -182,7 +186,8 @@ describe('folder navigation', () => {
   it('enters a folder and shows its children', async () => {
     const mockChrome = createMockChrome(fullTree);
     vi.stubGlobal('chrome', mockChrome);
-    await import('../js/bookmarks.js');
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
 
     // Click the "工作" folder
     const workFolderLink = document.querySelector('.bookmark-folder-item .bookmark-item');
@@ -201,7 +206,8 @@ describe('folder navigation', () => {
   it('returns to parent folder on back button click', async () => {
     const mockChrome = createMockChrome(fullTree);
     vi.stubGlobal('chrome', mockChrome);
-    await import('../js/bookmarks.js');
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
 
     // Enter "工作" folder
     document.querySelector('.bookmark-folder-item .bookmark-item').click();
@@ -221,7 +227,8 @@ describe('folder navigation', () => {
   it('supports nested folder navigation with back', async () => {
     const mockChrome = createMockChrome(nestedTree);
     vi.stubGlobal('chrome', mockChrome);
-    await import('../js/bookmarks.js');
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
 
     // Root level: should see "Outer" folder
     expect(document.querySelector('.bookmark-folder-item').textContent).toContain('Outer');
@@ -252,7 +259,8 @@ describe('folder navigation', () => {
 describe('empty and error states', () => {
   it('shows API unavailable message when chrome.bookmarks is missing', async () => {
     vi.stubGlobal('chrome', {});
-    await import('../js/bookmarks.js');
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
 
     expect(document.getElementById('bookmark-empty-state').hidden).toBe(false);
     expect(document.getElementById('bookmark-empty-text').textContent).toBe('仅在扩展模式下可读取书签栏');
@@ -261,7 +269,8 @@ describe('empty and error states', () => {
   it('shows empty state when bookmarks bar has no children', async () => {
     const mockChrome = createMockChrome(emptyTree);
     vi.stubGlobal('chrome', mockChrome);
-    await import('../js/bookmarks.js');
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
 
     expect(document.getElementById('bookmark-empty-state').hidden).toBe(false);
     expect(document.getElementById('bookmark-empty-text').textContent).toBe('书签栏暂无书签');
@@ -274,7 +283,8 @@ describe('empty and error states', () => {
       },
     };
     vi.stubGlobal('chrome', mockChrome);
-    await import('../js/bookmarks.js');
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
 
     expect(document.getElementById('bookmark-empty-state').hidden).toBe(false);
     expect(document.getElementById('bookmark-empty-text').textContent).toBe('无法读取书签栏');
@@ -287,7 +297,8 @@ describe('click behavior', () => {
   it('prevents default and adds pulse animation on left-click', async () => {
     const mockChrome = createMockChrome(fullTree);
     vi.stubGlobal('chrome', mockChrome);
-    await import('../js/bookmarks.js');
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
 
     const link = document.querySelector('.bookmark-item:not(.is-folder)');
     const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
@@ -315,7 +326,8 @@ describe('click behavior', () => {
   it('does not intercept click with modifier keys', async () => {
     const mockChrome = createMockChrome(fullTree);
     vi.stubGlobal('chrome', mockChrome);
-    await import('../js/bookmarks.js');
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
 
     // Capture location to verify navigation is NOT triggered
     const origLoc = window.location;
@@ -338,7 +350,8 @@ describe('click behavior', () => {
   it('navigates after animationend and transitionend', async () => {
     const mockChrome = createMockChrome(fullTree);
     vi.stubGlobal('chrome', mockChrome);
-    await import('../js/bookmarks.js');
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
 
     const link = document.querySelector('.bookmark-item:not(.is-folder)');
     const progressBar = document.getElementById('nav-progress');
@@ -376,7 +389,8 @@ describe('theme changes', () => {
   it('refreshes bookmark icon src on theme-changed event', async () => {
     const mockChrome = createMockChrome(githubTree);
     vi.stubGlobal('chrome', mockChrome);
-    await import('../js/bookmarks.js');
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
 
     const img = document.querySelector('.bookmark-item img');
     expect(img).toBeTruthy();
@@ -396,7 +410,8 @@ describe('chrome bookmark events', () => {
   it('re-renders when bookmark event fires', async () => {
     const mockChrome = createMockChrome(fullTree);
     vi.stubGlobal('chrome', mockChrome);
-    await import('../js/bookmarks.js');
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
 
     // Initial load should call getTree once
     expect(mockChrome.bookmarks.getTree).toHaveBeenCalledTimes(1);
@@ -419,7 +434,8 @@ describe('chrome bookmark events', () => {
   it('registers listeners for all three bookmark events', async () => {
     const mockChrome = createMockChrome(fullTree);
     vi.stubGlobal('chrome', mockChrome);
-    await import('../js/bookmarks.js');
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
 
     // Module should register onCreated, onRemoved, onChanged
     expect(mockChrome.bookmarks.onCreated.addListener).toHaveBeenCalledTimes(1);
