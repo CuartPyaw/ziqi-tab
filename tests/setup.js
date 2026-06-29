@@ -165,6 +165,22 @@ document.body.innerHTML = `
           <ul class="engine-list" id="engine-list"></ul>
           <button type="button" class="engine-add-btn" id="engine-add-btn">+ 添加搜索引擎</button>
         </div>
+        <div class="settings-panel" data-panel="display">
+          <h3 class="settings-panel-title">显示</h3>
+          <div class="settings-item">
+            <label class="settings-label">默认内容</label>
+            <div class="settings-radio-group">
+              <label class="settings-radio">
+                <input type="radio" name="default-view" value="links" checked>
+                <span>快捷网址</span>
+              </label>
+              <label class="settings-radio">
+                <input type="radio" name="default-view" value="bookmarks">
+                <span>书签栏</span>
+              </label>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="settings-footer">

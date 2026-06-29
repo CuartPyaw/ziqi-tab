@@ -228,12 +228,8 @@ function getEngineOrderInternal() {
 
 function renderDisplaySettings() {
   const view = getDefaultView();
-  const radios = document.querySelectorAll('input[name="default-view"]');
-  radios.forEach(radio => {
+  document.querySelectorAll('input[name="default-view"]').forEach(radio => {
     radio.checked = radio.value === view;
-    radio.addEventListener('change', () => {
-      if (radio.checked) saveDefaultView(radio.value);
-    });
   });
 }
 
@@ -336,5 +332,12 @@ export function initSettings() {
   // Listen for external engine changes to refresh list
   window.addEventListener('engines-changed', () => {
     renderEngineList();
+  });
+
+  // Default view radio — use event delegation to prevent duplicate listeners
+  document.querySelector('.settings-radio-group').addEventListener('change', (e) => {
+    if (e.target.matches('input[name="default-view"]')) {
+      saveDefaultView(e.target.value);
+    }
   });
 }
