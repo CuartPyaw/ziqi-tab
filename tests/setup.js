@@ -101,6 +101,23 @@ document.body.innerHTML = `
   <section class="quick-links" id="quick-links">
     <ul class="links-grid" id="links-grid"></ul>
   </section>
+
+  <div class="content-switcher" id="content-switcher">
+    <button class="content-switcher-btn is-active" data-view="links">快捷网址</button>
+    <button class="content-switcher-btn" data-view="bookmarks">书签栏</button>
+  </div>
+  <section class="bookmarks-section" id="bookmarks-section" hidden>
+    <div class="bookmark-folder-header" id="bookmark-folder-header" hidden>
+      <button class="bookmark-back-btn" id="bookmark-back-btn" type="button" title="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span class="bookmark-folder-title" id="bookmark-folder-title"></span>
+    </div>
+    <ul class="bookmarks-grid" id="bookmarks-grid"></ul>
+    <div class="bookmark-empty-state" id="bookmark-empty-state" hidden>
+      <p class="bookmark-empty-text" id="bookmark-empty-text"></p>
+    </div>
+  </section>
     </div>
   </div>
 
