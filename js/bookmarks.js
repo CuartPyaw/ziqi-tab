@@ -52,6 +52,12 @@ function getLabel(node) {
 
 /* ── Empty / Error States ──────────────── */
 
+function resetFolderContext() {
+  folderStack = [];
+  elFolderHeader.hidden = true;
+  elFolderTitle.textContent = '';
+}
+
 function showEmpty(message) {
   elEmptyText.textContent = message;
   elEmptyState.hidden = false;
@@ -116,11 +122,11 @@ function renderFolderItem(node) {
   const li = document.createElement('li');
   li.className = 'bookmark-folder-item';
 
-  const a = document.createElement('a');
-  a.className = 'bookmark-item is-folder';
-  a.href = '#';
-  a.title = node.title || '未命名文件夹';
-  a.setAttribute('data-folder-id', node.id);
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'bookmark-item is-folder';
+  button.title = node.title || '未命名文件夹';
+  button.setAttribute('data-folder-id', node.id);
 
   // Folder icon — inline SVG (CSS-rendered)
   const folderIcon = document.createElement('div');
@@ -129,15 +135,15 @@ function renderFolderItem(node) {
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="32" height="32">'
     + '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>'
     + '</svg>';
-  a.appendChild(folderIcon);
+  button.appendChild(folderIcon);
 
   // Label
   const label = document.createElement('span');
   label.className = 'bookmark-label';
   label.textContent = node.title || '未命名文件夹';
-  a.appendChild(label);
+  button.appendChild(label);
 
-  li.appendChild(a);
+  li.appendChild(button);
   return li;
 }
 
@@ -165,8 +171,7 @@ function renderRoot() {
     showEmpty('书签栏暂无书签');
     return;
   }
-  folderStack = [];
-  elFolderHeader.hidden = true;
+  resetFolderContext();
   renderBookmarks(rootNode.children);
 }
 
@@ -211,6 +216,8 @@ function loadAndRender() {
 
 function loadAndRenderInternal(prevFolderIds = []) {
   if (typeof chrome === 'undefined' || !chrome.bookmarks) {
+    rootNode = null;
+    resetFolderContext();
     showEmpty('仅在扩展模式下可读取书签栏');
     return;
   }
@@ -219,11 +226,15 @@ function loadAndRenderInternal(prevFolderIds = []) {
     chrome.bookmarks.getTree(tree => {
       try {
         if (!tree || !tree[0]) {
+          rootNode = null;
+          resetFolderContext();
           showEmpty('无法读取书签栏');
           return;
         }
         const barRoot = getBookmarksBar(tree);
         if (!barRoot || !barRoot.children || barRoot.children.length === 0) {
+          rootNode = null;
+          resetFolderContext();
           showEmpty('书签栏暂无书签');
           return;
         }
@@ -236,10 +247,14 @@ function loadAndRenderInternal(prevFolderIds = []) {
           restoreFolderPath(prevFolderIds);
         }
       } catch (_) {
+        rootNode = null;
+        resetFolderContext();
         showEmpty('无法读取书签栏');
       }
     });
   } catch (_) {
+    rootNode = null;
+    resetFolderContext();
     showEmpty('无法读取书签栏');
   }
 }
@@ -297,8 +312,8 @@ function setupClickHandler() {
     }
 
     // Bookmark link
-    const a = e.target.closest('.bookmark-item');
-    if (!a || !a.href || a.href === '#') return;
+    const a = e.target.closest('a.bookmark-item');
+    if (!a || !a.href) return;
     e.preventDefault();
 
     const href = a.href;
@@ -357,6 +372,9 @@ function setupBookmarkListeners() {
     if (chrome.bookmarks.onChanged) {
       chrome.bookmarks.onChanged.addListener(refreshFromApi);
     }
+    if (chrome.bookmarks.onMoved) {
+      chrome.bookmarks.onMoved.addListener(refreshFromApi);
+    }
   } catch (_) {
     // API may not support listeners in all contexts
   }
@@ -401,4 +419,3 @@ export function initBookmarks() {
   // Live bookmark change listeners (onCreated, onRemoved, onChanged)
   setupBookmarkListeners();
 }
-

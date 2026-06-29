@@ -72,6 +72,36 @@ describe('dialog', () => {
     expect(localStorage.getItem('ziqi-search-width')).toBe('600');
     expect(document.documentElement.style.getPropertyValue('--search-width')).toBe('600px');
   });
+
+  it('does not persist default view when dialog closes without save', () => {
+    document.getElementById('settings-toggle').click();
+    document.querySelector('[data-tab="display"]').click();
+
+    const bookmarksRadio = document.querySelector('input[name="default-view"][value="bookmarks"]');
+    bookmarksRadio.checked = true;
+    bookmarksRadio.dispatchEvent(new Event('change', { bubbles: true }));
+
+    document.querySelector('#settings-dialog [value="cancel"]').click();
+
+    expect(localStorage.getItem('ziqi-default-view')).toBeNull();
+
+    document.getElementById('settings-toggle').click();
+    expect(document.querySelector('input[name="default-view"][value="links"]').checked).toBe(true);
+    expect(document.querySelector('input[name="default-view"][value="bookmarks"]').checked).toBe(false);
+  });
+
+  it('persists default view on save button click', () => {
+    document.getElementById('settings-toggle').click();
+    document.querySelector('[data-tab="display"]').click();
+
+    const bookmarksRadio = document.querySelector('input[name="default-view"][value="bookmarks"]');
+    bookmarksRadio.checked = true;
+    bookmarksRadio.dispatchEvent(new Event('change', { bubbles: true }));
+
+    document.getElementById('settings-save').click();
+
+    expect(localStorage.getItem('ziqi-default-view')).toBe('bookmarks');
+  });
 });
 
 describe('settings tabs', () => {

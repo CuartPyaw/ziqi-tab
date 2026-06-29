@@ -1,7 +1,6 @@
 /**
  * Bookmarks — native browser bookmarks via chrome.bookmarks API.
  *
- * The module self-initializes on import (initBookmarks() at the module level).
  * Each test uses vi.resetModules() + dynamic import to get a fresh module
  * instance with the desired chrome mock.
  */
@@ -74,13 +73,19 @@ const githubTree = [{
 // ── Mock Factory ───────────────────────────
 
 function createMockChrome(treeData) {
-  const listeners = [];
+  const listeners = {
+    created: [],
+    removed: [],
+    changed: [],
+    moved: [],
+  };
   return {
     bookmarks: {
       getTree: vi.fn(cb => cb(treeData)),
-      onCreated: { addListener: vi.fn(fn => listeners.push(fn)) },
-      onRemoved: { addListener: vi.fn(fn => listeners.push(fn)) },
-      onChanged: { addListener: vi.fn(fn => listeners.push(fn)) },
+      onCreated: { addListener: vi.fn(fn => listeners.created.push(fn)) },
+      onRemoved: { addListener: vi.fn(fn => listeners.removed.push(fn)) },
+      onChanged: { addListener: vi.fn(fn => listeners.changed.push(fn)) },
+      onMoved: { addListener: vi.fn(fn => listeners.moved.push(fn)) },
     },
     _listeners: listeners,
   };
@@ -150,6 +155,7 @@ describe('rendering', () => {
     const folders = document.querySelectorAll('.bookmark-folder-item');
     expect(folders.length).toBe(2);
     expect(folders[0].textContent).toContain('工作');
+    expect(folders[0].querySelector('.bookmark-item').tagName).toBe('BUTTON');
   });
 
   it('shows fallback title for folder with empty title', async () => {
@@ -419,9 +425,8 @@ describe('chrome bookmark events', () => {
     // Update mock data to empty tree
     mockChrome.bookmarks.getTree.mockImplementation(cb => cb(emptyTree));
 
-    // Trigger bookmark event (onCreated, onRemoved, or onChanged)
-    // All three register the same refreshFromApi listener
-    mockChrome._listeners[0]();
+    // Trigger bookmark event
+    mockChrome._listeners.created[0]();
 
     // getTree should be called again
     expect(mockChrome.bookmarks.getTree).toHaveBeenCalledTimes(2);
@@ -431,18 +436,53 @@ describe('chrome bookmark events', () => {
     expect(document.getElementById('bookmark-empty-text').textContent).toBe('书签栏暂无书签');
   });
 
-  it('registers listeners for all three bookmark events', async () => {
+  it('clears stale folder context when refresh falls back to empty state', async () => {
     const mockChrome = createMockChrome(fullTree);
     vi.stubGlobal('chrome', mockChrome);
     const { initBookmarks } = await import('../js/bookmarks.js');
     initBookmarks();
 
-    // Module should register onCreated, onRemoved, onChanged
+    document.querySelector('.bookmark-folder-item .bookmark-item').click();
+    expect(document.getElementById('bookmark-folder-header').hidden).toBe(false);
+    expect(document.getElementById('bookmark-folder-title').textContent).toBe('工作');
+
+    mockChrome.bookmarks.getTree.mockImplementation(cb => cb(emptyTree));
+    mockChrome._listeners.removed[0]();
+
+    expect(document.getElementById('bookmark-folder-header').hidden).toBe(true);
+    expect(document.getElementById('bookmark-folder-title').textContent).toBe('');
+    expect(document.getElementById('bookmark-empty-state').hidden).toBe(false);
+  });
+
+  it('re-renders when bookmark move event fires', async () => {
+    const mockChrome = createMockChrome(fullTree);
+    vi.stubGlobal('chrome', mockChrome);
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
+
+    mockChrome.bookmarks.getTree.mockImplementation(cb => cb(emptyTree));
+    mockChrome._listeners.moved[0]();
+
+    expect(mockChrome.bookmarks.getTree).toHaveBeenCalledTimes(2);
+    expect(document.getElementById('bookmark-empty-state').hidden).toBe(false);
+    expect(document.getElementById('bookmark-empty-text').textContent).toBe('书签栏暂无书签');
+  });
+
+  it('registers listeners for create/remove/change/move bookmark events', async () => {
+    const mockChrome = createMockChrome(fullTree);
+    vi.stubGlobal('chrome', mockChrome);
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
+
+    // Module should register onCreated, onRemoved, onChanged, onMoved
     expect(mockChrome.bookmarks.onCreated.addListener).toHaveBeenCalledTimes(1);
     expect(mockChrome.bookmarks.onRemoved.addListener).toHaveBeenCalledTimes(1);
     expect(mockChrome.bookmarks.onChanged.addListener).toHaveBeenCalledTimes(1);
+    expect(mockChrome.bookmarks.onMoved.addListener).toHaveBeenCalledTimes(1);
 
-    // All three listeners should be the same refresh function
-    expect(mockChrome._listeners.length).toBe(3);
+    expect(mockChrome._listeners.created.length).toBe(1);
+    expect(mockChrome._listeners.removed.length).toBe(1);
+    expect(mockChrome._listeners.changed.length).toBe(1);
+    expect(mockChrome._listeners.moved.length).toBe(1);
   });
 });

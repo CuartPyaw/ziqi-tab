@@ -250,12 +250,15 @@ function closeDialog() {
 
 function handleSave() {
   saveWidth(Number(elSlider.value));
+  const selectedView = document.querySelector('input[name="default-view"]:checked')?.value || 'links';
+  saveDefaultView(selectedView);
   closeDialog();
 }
 
 function handleCancel() {
   elSlider.value = storedWidth;
   updateDisplay();
+  renderDisplaySettings();
   closeDialog();
 }
 
@@ -334,10 +337,4 @@ export function initSettings() {
     renderEngineList();
   });
 
-  // Default view radio — use event delegation to prevent duplicate listeners
-  document.querySelector('.settings-radio-group').addEventListener('change', (e) => {
-    if (e.target.matches('input[name="default-view"]')) {
-      saveDefaultView(e.target.value);
-    }
-  });
 }

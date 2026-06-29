@@ -165,6 +165,7 @@ document.body.innerHTML = `
         <button type="button" class="settings-nav-item" data-tab="engines">
           搜索引擎
         </button>
+        <button type="button" class="settings-nav-item" data-tab="display">显示</button>
       </nav>
       <div class="settings-panels" id="settings-panels">
         <div class="settings-panel active" data-panel="search">
