@@ -67,6 +67,8 @@
   width: 88px;
   padding: 0.75rem 0.5rem 0.625rem;
   border-radius: var(--radius-md);
+  border: none;
+  font-family: var(--font);
   text-decoration: none;
   color: var(--text-secondary);
   background: transparent;
@@ -75,14 +77,21 @@
   user-select: none;
 }
 
+.bookmark-item.is-folder {
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--paper) 88%, var(--surface) 12%), color-mix(in srgb, var(--paper) 66%, var(--paper-dark) 34%));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--surface) 34%, transparent),
+    0 1px 2px rgba(61, 53, 41, 0.08),
+    0 6px 12px rgba(61, 53, 41, 0.05);
+}
+
 .bookmark-item:hover {
   background: var(--surface);
   box-shadow: var(--shadow-sm);
   color: var(--text-primary);
-}
-
-.bookmark-item.is-folder:hover {
-  animation: none;
+  animation: pulse var(--animate-duration, 1s) infinite;
 }
 
 .bookmark-icon-wrapper {
