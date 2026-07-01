@@ -6,7 +6,7 @@
  * Supports folder navigation with a stack-based back button.
  */
 
-import { domainToSlug, iconUrl, fallbackLetter } from './links.js';
+import { fallbackLetter } from './links.js';
 
 /* ── State ─────────────────────────────── */
 
@@ -50,6 +50,19 @@ function getLabel(node) {
   return '';
 }
 
+function bookmarkFaviconUrl(node) {
+  if (!node.url) return null;
+  try {
+    new URL(node.url);
+  } catch {
+    return null;
+  }
+  if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.getURL) {
+    return null;
+  }
+  return chrome.runtime.getURL(`/_favicon/?pageUrl=${encodeURIComponent(node.url)}&size=32`);
+}
+
 /* ── Empty / Error States ──────────────── */
 
 function resetFolderContext() {
@@ -83,7 +96,7 @@ function renderBookmarkItem(node) {
   iconWrap.className = 'bookmark-icon-wrapper';
 
   const img = document.createElement('img');
-  const src = iconUrl(node); // node.url is read inside iconUrl
+  const src = bookmarkFaviconUrl(node);
   img.src = src || '';
   img.alt = '';
   img.loading = 'eager';
@@ -339,26 +352,6 @@ function setupClickHandler() {
   });
 }
 
-/* ── Theme Changes ─────────────────────── */
-
-function setupThemeListener() {
-  window.addEventListener('theme-changed', () => {
-    // Refresh bookmark link card icons (same pattern as links.js)
-    document.querySelectorAll('.bookmark-item:not(.is-folder) .bookmark-icon-wrapper img').forEach(img => {
-      const a = img.closest('.bookmark-item');
-      if (!a) return;
-      const url = a.href;
-      if (url) {
-        const slug = domainToSlug(url);
-        if (slug) {
-          const newSrc = iconUrl({ url });
-          if (newSrc && newSrc !== img.src) img.src = newSrc;
-        }
-      }
-    });
-  });
-}
-
 /* ── Bookmark Change Listeners ─────────── */
 
 function setupBookmarkListeners() {
@@ -412,9 +405,6 @@ export function initBookmarks() {
 
   // Click handling for bookmark and folder items
   setupClickHandler();
-
-  // Theme change: refresh icons
-  setupThemeListener();
 
   // Live bookmark change listeners (onCreated, onRemoved, onChanged)
   setupBookmarkListeners();

@@ -80,6 +80,9 @@ function createMockChrome(treeData) {
     moved: [],
   };
   return {
+    runtime: {
+      getURL: vi.fn(path => `chrome-extension://test-extension${path}`),
+    },
     bookmarks: {
       getTree: vi.fn(cb => cb(treeData)),
       onCreated: { addListener: vi.fn(fn => listeners.created.push(fn)) },
@@ -389,10 +392,10 @@ describe('click behavior', () => {
   });
 });
 
-// ── Theme Changes ──────────────────────────
+// ── Bookmark Icons ─────────────────────────
 
-describe('theme changes', () => {
-  it('refreshes bookmark icon src on theme-changed event', async () => {
+describe('bookmark Chrome favicon icons', () => {
+  it('uses Chrome _favicon endpoint as the icon source', async () => {
     const mockChrome = createMockChrome(githubTree);
     vi.stubGlobal('chrome', mockChrome);
     const { initBookmarks } = await import('../js/bookmarks.js');
@@ -400,13 +403,60 @@ describe('theme changes', () => {
 
     const img = document.querySelector('.bookmark-item img');
     expect(img).toBeTruthy();
-    expect(img.src).toContain('181717'); // light mode color
+    expect(img.src).toBe(
+      'chrome-extension://test-extension/_favicon/?pageUrl=https%3A%2F%2Fgithub.com&size=32',
+    );
+    expect(mockChrome.runtime.getURL).toHaveBeenCalledWith(
+      '/_favicon/?pageUrl=https%3A%2F%2Fgithub.com&size=32',
+    );
+    expect(img.src).not.toContain('/favicon.svg');
+    expect(img.src).not.toContain('cdn.simpleicons.org');
+  });
 
-    // Switch to dark mode
+  it('falls back to first letter when the Chrome favicon fails to load', async () => {
+    const mockChrome = createMockChrome(githubTree);
+    vi.stubGlobal('chrome', mockChrome);
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
+
+    const img = document.querySelector('.bookmark-item img');
+    img.dispatchEvent(new Event('error'));
+
+    const fallback = document.querySelector('.bookmark-icon-fallback');
+    expect(fallback).not.toBeNull();
+    expect(fallback.textContent).toBe('G');
+  });
+
+  it('falls back to first letter when chrome.runtime.getURL is unavailable', async () => {
+    const mockChrome = createMockChrome(githubTree);
+    delete mockChrome.runtime;
+    vi.stubGlobal('chrome', mockChrome);
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
+
+    expect(document.querySelector('.bookmark-item img')).toBeNull();
+    const fallback = document.querySelector('.bookmark-icon-fallback');
+    expect(fallback).not.toBeNull();
+    expect(fallback.textContent).toBe('G');
+  });
+
+  it('does not change bookmark Chrome favicon src on theme changes', async () => {
+    const mockChrome = createMockChrome(githubTree);
+    vi.stubGlobal('chrome', mockChrome);
+    const { initBookmarks } = await import('../js/bookmarks.js');
+    initBookmarks();
+
+    const img = document.querySelector('.bookmark-item img');
+    expect(img.src).toBe(
+      'chrome-extension://test-extension/_favicon/?pageUrl=https%3A%2F%2Fgithub.com&size=32',
+    );
+
     document.documentElement.setAttribute('data-theme', 'dark');
     window.dispatchEvent(new CustomEvent('theme-changed'));
 
-    expect(img.src).toContain('FFFFFF'); // dark mode color
+    expect(img.src).toBe(
+      'chrome-extension://test-extension/_favicon/?pageUrl=https%3A%2F%2Fgithub.com&size=32',
+    );
   });
 });
 
