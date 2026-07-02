@@ -143,6 +143,42 @@ export function destroyContentView() {
   isTransitioning = false;
 }
 
+/* ── Browser Shortcuts (Extensions / History) ───────────────── */
+
+function navigateToBrowserUrl(url) {
+  window.location.assign(url);
+}
+
+export function openBrowserUrl(url) {
+  try {
+    if (globalThis.chrome?.tabs?.update) {
+      globalThis.chrome.tabs.update({ url }, () => {
+        if (globalThis.chrome?.runtime?.lastError) {
+          navigateToBrowserUrl(url);
+        }
+      });
+      return;
+    }
+  } catch (_) {
+    // Fall back to normal navigation below.
+  }
+
+  navigateToBrowserUrl(url);
+}
+
+function handleBrowserShortcutClick(e) {
+  const url = e.currentTarget.dataset.browserUrl;
+  if (url) openBrowserUrl(url);
+}
+
+export function initBrowserShortcuts() {
+  document.querySelectorAll('[data-browser-url]').forEach((btn) => {
+    if (btn.dataset.browserShortcutBound === 'true') return;
+    btn.dataset.browserShortcutBound = 'true';
+    btn.addEventListener('click', handleBrowserShortcutClick);
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Theme — sets data-theme attr before anything renders
   initTheme();
@@ -171,7 +207,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.dispatchEvent(new CustomEvent('theme-changed'));
   });
 
-  // 9. 新标签页打开动画 — bounceInUp on the main page
+  // 9. Browser shortcuts — use extension tabs API for chrome:// pages
+  initBrowserShortcuts();
+
+  // 10. 新标签页打开动画 — bounceInUp on the main page
   const container = document.querySelector('.container');
   container.style.visibility = 'visible';
   const mainPage = document.querySelector('.page--main');

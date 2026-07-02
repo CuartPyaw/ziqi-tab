@@ -121,21 +121,27 @@ describe('settings tabs', () => {
 });
 
 describe('bottom shortcuts', () => {
-  it('extensions shortcut exists with correct href', () => {
-    const el = document.querySelector('a[href="chrome://extensions"]');
+  it('extensions shortcut exists with correct target', () => {
+    const el = document.getElementById('extensions-shortcut');
     expect(el).not.toBeNull();
+    expect(el.tagName).toBe('BUTTON');
     expect(el.classList.contains('settings-btn')).toBe(true);
+    expect(el.dataset.browserUrl).toBe('chrome://extensions/');
     expect(el.getAttribute('title')).toBe('扩展程序');
     expect(el.getAttribute('aria-label')).toBe('扩展程序');
+    expect(el.getAttribute('type')).toBe('button');
     expect(el.querySelector('svg').getAttribute('aria-hidden')).toBe('true');
   });
 
-  it('history shortcut exists with correct href', () => {
-    const el = document.querySelector('a[href="chrome://history"]');
+  it('history shortcut exists with correct target', () => {
+    const el = document.getElementById('history-shortcut');
     expect(el).not.toBeNull();
+    expect(el.tagName).toBe('BUTTON');
     expect(el.classList.contains('settings-btn')).toBe(true);
+    expect(el.dataset.browserUrl).toBe('chrome://history/');
     expect(el.getAttribute('title')).toBe('历史记录');
     expect(el.getAttribute('aria-label')).toBe('历史记录');
+    expect(el.getAttribute('type')).toBe('button');
     expect(el.querySelector('svg').getAttribute('aria-hidden')).toBe('true');
   });
 

@@ -30,11 +30,6 @@
   box-shadow: var(--shadow-md);
 }
 
-a.settings-btn {
-  text-decoration: none;
-  color: inherit;
-}
-
 .settings-btn svg {
   width: 18px;
   height: 18px;

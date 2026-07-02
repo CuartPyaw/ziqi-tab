@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { initContentView, destroyContentView } from '../js/app.js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { initContentView, destroyContentView, initBrowserShortcuts, openBrowserUrl } from '../js/app.js';
 
 describe('app bootstrap', () => {
   it('wires up the content view switcher via DOMContentLoaded and applies the default view', () => {
@@ -16,6 +16,42 @@ describe('app bootstrap', () => {
 
     // Clean up so the tests below start from a known state
     destroyContentView();
+  });
+});
+
+describe('browser shortcuts', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('opens chrome internal pages through the tabs API when available', () => {
+    const update = vi.fn((_props, callback) => callback?.());
+    vi.stubGlobal('chrome', {
+      tabs: { update },
+      runtime: {},
+    });
+
+    initBrowserShortcuts();
+    document.getElementById('extensions-shortcut').click();
+    document.getElementById('history-shortcut').click();
+
+    expect(update).toHaveBeenNthCalledWith(1, { url: 'chrome://extensions/' }, expect.any(Function));
+    expect(update).toHaveBeenNthCalledWith(2, { url: 'chrome://history/' }, expect.any(Function));
+  });
+
+  it('falls back to location navigation if the tabs API throws', () => {
+    const update = vi.fn(() => {
+      throw new Error('tabs unavailable');
+    });
+    vi.stubGlobal('chrome', {
+      tabs: { update },
+      runtime: {},
+    });
+
+    openBrowserUrl('#browser-shortcut-fallback');
+
+    expect(window.location.hash).toBe('#browser-shortcut-fallback');
+    window.history.replaceState(null, '', '/');
   });
 });
 
