@@ -61,43 +61,48 @@ function switchView(view) {
 
   const fromPanel = panelFor(currentView);
   const toPanel = panelFor(view);
-  const forward = view === 'bookmarks';
 
   isTransitioning = true;
   setActiveButton(view);
   positionPill();
 
-  // Freeze the stage at its current height, then reveal the incoming panel
-  // and make both panels absolutely positioned so they can overlap.
+  // Keep only one content panel visible at a time. Overlapping the two grids
+  // during opacity animation causes a brief ghost image on fast switches.
   elStage.style.height = `${fromPanel.offsetHeight}px`;
   elStage.classList.add('is-transitioning');
-  toPanel.hidden = false;
-  toPanel.style.display = '';
 
-  // Force a reflow so the height freeze and reveal are committed before the
-  // next style change — otherwise the browser coalesces them and the height
-  // transition never animates.
+  // Force a reflow so the height freeze is committed before the fade starts.
   void elStage.offsetHeight;
 
-  const leaveClass = forward ? 'content-slide-out-to-left' : 'content-slide-out-to-right';
-  const enterClass = forward ? 'content-slide-in-from-right' : 'content-slide-in-from-left';
+  fromPanel.classList.add('content-panel-out');
 
-  elStage.style.height = `${toPanel.scrollHeight}px`;
-  fromPanel.classList.add(leaveClass);
-  toPanel.classList.add(enterClass);
+  fromPanel.addEventListener('animationend', function onOutEnd(e) {
+    if (e.target !== fromPanel) return;
+    fromPanel.removeEventListener('animationend', onOutEnd);
 
-  toPanel.addEventListener('animationend', function onEnd() {
-
-    elStage.classList.remove('is-transitioning');
-    elStage.style.height = '';
-    fromPanel.classList.remove(leaveClass);
-    toPanel.classList.remove(enterClass);
-
+    fromPanel.classList.remove('content-panel-out');
     fromPanel.hidden = true;
     fromPanel.style.display = 'none'; // redundant with [hidden] !important rule but kept for pre-existing contract consistency
 
-    isTransitioning = false;
-  }, { once: true });
+    toPanel.hidden = false;
+    toPanel.style.display = '';
+    elStage.style.height = `${toPanel.scrollHeight}px`;
+
+    // Commit the panel swap before the incoming fade, avoiding a coalesced paint.
+    void elStage.offsetHeight;
+
+    toPanel.classList.add('content-panel-in');
+
+    toPanel.addEventListener('animationend', function onInEnd(event) {
+      if (event.target !== toPanel) return;
+      toPanel.removeEventListener('animationend', onInEnd);
+
+      toPanel.classList.remove('content-panel-in');
+      elStage.classList.remove('is-transitioning');
+      elStage.style.height = '';
+      isTransitioning = false;
+    });
+  });
 }
 
 /**

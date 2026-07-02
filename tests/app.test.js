@@ -45,14 +45,32 @@ describe('content view switcher transition', () => {
 
     bookmarksButton.click();
 
-    // Button state, panel reveal, and animation classes apply immediately —
-    // they do not wait for the animation to finish.
+    // Button state updates immediately, but the incoming panel stays hidden
+    // until the outgoing panel has faded out. This avoids content ghosting.
     expect(linksButton.classList.contains('is-active')).toBe(false);
     expect(bookmarksButton.classList.contains('is-active')).toBe(true);
+    expect(bookmarksSection.hidden).toBe(true);
+    expect(quickLinks.classList.contains('content-panel-out')).toBe(true);
+    expect(bookmarksSection.classList.contains('content-panel-in')).toBe(false);
+    expect(quickLinks.hidden).toBe(false);
+
+    document.getElementById('links-grid').dispatchEvent(new Event('animationend', { bubbles: true }));
+
+    expect(bookmarksSection.hidden).toBe(true);
+    expect(quickLinks.classList.contains('content-panel-out')).toBe(true);
+
+    quickLinks.dispatchEvent(new Event('animationend', { bubbles: true }));
+
+    expect(quickLinks.hidden).toBe(true);
+    expect(quickLinks.style.display).toBe('none');
     expect(bookmarksSection.hidden).toBe(false);
-    expect(quickLinks.classList.contains('content-slide-out-to-left')).toBe(true);
-    expect(bookmarksSection.classList.contains('content-slide-in-from-right')).toBe(true);
-    expect(quickLinks.hidden).toBe(false); // still present until animationend
+    expect(bookmarksSection.style.display).toBe('');
+    expect(quickLinks.classList.contains('content-panel-out')).toBe(false);
+    expect(bookmarksSection.classList.contains('content-panel-in')).toBe(true);
+
+    document.getElementById('bookmarks-grid').dispatchEvent(new Event('animationend', { bubbles: true }));
+
+    expect(bookmarksSection.classList.contains('content-panel-in')).toBe(true);
 
     bookmarksSection.dispatchEvent(new Event('animationend', { bubbles: true }));
 
@@ -60,8 +78,8 @@ describe('content view switcher transition', () => {
     expect(quickLinks.style.display).toBe('none');
     expect(bookmarksSection.hidden).toBe(false);
     expect(bookmarksSection.style.display).toBe('');
-    expect(quickLinks.classList.contains('content-slide-out-to-left')).toBe(false);
-    expect(bookmarksSection.classList.contains('content-slide-in-from-right')).toBe(false);
+    expect(quickLinks.classList.contains('content-panel-out')).toBe(false);
+    expect(bookmarksSection.classList.contains('content-panel-in')).toBe(false);
   });
 
   it('animates bookmarks back to links with the reverse slide direction', () => {
@@ -71,17 +89,25 @@ describe('content view switcher transition', () => {
     const bookmarksButton = document.querySelector('.content-switcher-btn[data-view="bookmarks"]');
 
     bookmarksButton.click();
+    quickLinks.dispatchEvent(new Event('animationend', { bubbles: true }));
     bookmarksSection.dispatchEvent(new Event('animationend', { bubbles: true }));
 
     linksButton.click();
 
-    expect(bookmarksSection.classList.contains('content-slide-out-to-right')).toBe(true);
-    expect(quickLinks.classList.contains('content-slide-in-from-left')).toBe(true);
+    expect(bookmarksSection.classList.contains('content-panel-out')).toBe(true);
+    expect(quickLinks.classList.contains('content-panel-in')).toBe(false);
+
+    bookmarksSection.dispatchEvent(new Event('animationend', { bubbles: true }));
+
+    expect(bookmarksSection.hidden).toBe(true);
+    expect(quickLinks.hidden).toBe(false);
+    expect(quickLinks.classList.contains('content-panel-in')).toBe(true);
 
     quickLinks.dispatchEvent(new Event('animationend', { bubbles: true }));
 
     expect(bookmarksSection.hidden).toBe(true);
     expect(quickLinks.hidden).toBe(false);
+    expect(quickLinks.classList.contains('content-panel-in')).toBe(false);
   });
 
   it('ignores a click on the other button while a transition is in flight', () => {
@@ -96,6 +122,7 @@ describe('content view switcher transition', () => {
     expect(bookmarksButton.classList.contains('is-active')).toBe(true);
     expect(linksButton.classList.contains('is-active')).toBe(false);
 
+    quickLinks.dispatchEvent(new Event('animationend', { bubbles: true }));
     bookmarksSection.dispatchEvent(new Event('animationend', { bubbles: true }));
 
     expect(bookmarksSection.hidden).toBe(false);
@@ -109,8 +136,8 @@ describe('content view switcher transition', () => {
     linksButton.click();
 
     expect(linksButton.classList.contains('is-active')).toBe(true);
-    expect(quickLinks.classList.contains('content-slide-out-to-left')).toBe(false);
-    expect(quickLinks.classList.contains('content-slide-out-to-right')).toBe(false);
+    expect(quickLinks.classList.contains('content-panel-out')).toBe(false);
+    expect(quickLinks.classList.contains('content-panel-in')).toBe(false);
   });
 
   it('positions the sliding pill behind the active button on init and after switching', () => {
