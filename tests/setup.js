@@ -98,14 +98,17 @@ document.body.innerHTML = `
     </div>
   </header>
 
+  <div class="content-switcher" id="content-switcher">
+    <div class="content-switcher-pill" id="content-switcher-pill"></div>
+    <button class="content-switcher-btn is-active" data-view="links">快捷网址</button>
+    <button class="content-switcher-btn" data-view="bookmarks">书签栏</button>
+  </div>
+
+  <div class="content-stage" id="content-stage">
   <section class="quick-links" id="quick-links">
     <ul class="links-grid" id="links-grid"></ul>
   </section>
 
-  <div class="content-switcher" id="content-switcher">
-    <button class="content-switcher-btn is-active" data-view="links">快捷网址</button>
-    <button class="content-switcher-btn" data-view="bookmarks">书签栏</button>
-  </div>
   <section class="bookmarks-section" id="bookmarks-section" hidden>
     <div class="bookmark-folder-header" id="bookmark-folder-header" hidden>
       <button class="bookmark-back-btn" id="bookmark-back-btn" type="button" title="返回">
@@ -118,6 +121,7 @@ document.body.innerHTML = `
       <p class="bookmark-empty-text" id="bookmark-empty-text"></p>
     </div>
   </section>
+  </div>
     </div>
   </div>
 

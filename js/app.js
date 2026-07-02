@@ -9,18 +9,110 @@ import { initLinks } from './links.js';
 import { initBookmarks } from './bookmarks.js';
 import { initSettings } from './settings.js';
 
+/* ── Content View (Quick Links / Bookmarks) ─────────────────── */
+
+const elSwitcher = document.getElementById('content-switcher');
+const elPill = document.getElementById('content-switcher-pill');
+const elStage = document.getElementById('content-stage');
+const elQuickLinks = document.getElementById('quick-links');
+const elBookmarksSection = document.getElementById('bookmarks-section');
+
+let isTransitioning = false;
+let switcherClickHandler = null;
+
+function getActiveButton() {
+  return elSwitcher.querySelector('.content-switcher-btn.is-active');
+}
+
+function setActiveButton(view) {
+  elSwitcher.querySelectorAll('.content-switcher-btn').forEach(btn => {
+    btn.classList.toggle('is-active', btn.dataset.view === view);
+  });
+}
+
+function positionPill() {
+  const active = getActiveButton();
+  if (!active) return;
+  elPill.style.width = `${active.offsetWidth}px`;
+  elPill.style.transform = `translateX(${active.offsetLeft}px)`;
+}
+
+function panelFor(view) {
+  return view === 'links' ? elQuickLinks : elBookmarksSection;
+}
+
+/** Instant application, used on initial load — no animation. */
+function applyView(view) {
+  setActiveButton(view);
+  positionPill();
+  const showLinks = view === 'links';
+  elQuickLinks.hidden = !showLinks;
+  elQuickLinks.style.display = showLinks ? '' : 'none';
+  elBookmarksSection.hidden = showLinks;
+  elBookmarksSection.style.display = showLinks ? 'none' : '';
+}
+
+/** Animated switch, used on switcher button clicks. */
+function switchView(view) {
+  const current = getActiveButton();
+  const currentView = current ? current.dataset.view : 'links';
+  if (currentView === view || isTransitioning) return;
+
+  const fromPanel = panelFor(currentView);
+  const toPanel = panelFor(view);
+  const forward = view === 'bookmarks';
+
+  isTransitioning = true;
+  setActiveButton(view);
+  positionPill();
+
+  // Freeze the stage at its current height, then reveal the incoming panel
+  // and make both panels absolutely positioned so they can overlap.
+  elStage.style.height = `${fromPanel.offsetHeight}px`;
+  elStage.classList.add('is-transitioning');
+  toPanel.hidden = false;
+  toPanel.style.display = '';
+
+  // Force a reflow so the height freeze and reveal are committed before the
+  // next style change — otherwise the browser coalesces them and the height
+  // transition never animates.
+  void elStage.offsetHeight;
+
+  const leaveClass = forward ? 'content-slide-out-to-left' : 'content-slide-out-to-right';
+  const enterClass = forward ? 'content-slide-in-from-right' : 'content-slide-in-from-left';
+
+  elStage.style.height = `${toPanel.scrollHeight}px`;
+  fromPanel.classList.add(leaveClass);
+  toPanel.classList.add(enterClass);
+
+  toPanel.addEventListener('animationend', function onEnd() {
+    toPanel.removeEventListener('animationend', onEnd);
+
+    elStage.classList.remove('is-transitioning');
+    elStage.style.height = '';
+    fromPanel.classList.remove(leaveClass);
+    toPanel.classList.remove(enterClass);
+
+    fromPanel.hidden = true;
+    fromPanel.style.display = 'none';
+
+    isTransitioning = false;
+  }, { once: true });
+}
+
 /**
  * Initialize content view switcher (quick links vs bookmarks).
  */
-function initContentView() {
+export function initContentView() {
   const defaultView = localStorage.getItem('ziqi-default-view') || 'links';
-  switchView(defaultView);
+  applyView(defaultView);
 
-  document.getElementById('content-switcher').addEventListener('click', (e) => {
+  switcherClickHandler = (e) => {
     const btn = e.target.closest('.content-switcher-btn');
     if (!btn) return;
     switchView(btn.dataset.view);
-  });
+  };
+  elSwitcher.addEventListener('click', switcherClickHandler);
 
   // Listen for default-view-changed from settings (do not switch current view)
   // Record default view preference from settings (no view switch needed;
@@ -31,22 +123,13 @@ function initContentView() {
   });
 }
 
-/**
- * Switch between links and bookmarks views.
- */
-function switchView(view) {
-  const linksSection = document.getElementById('quick-links');
-  const bookmarksSection = document.getElementById('bookmarks-section');
-  const showLinks = view === 'links';
-
-  document.querySelectorAll('.content-switcher-btn').forEach(btn => {
-    btn.classList.toggle('is-active', btn.dataset.view === view);
-  });
-
-  linksSection.hidden = !showLinks;
-  linksSection.style.display = showLinks ? '' : 'none';
-  bookmarksSection.hidden = showLinks;
-  bookmarksSection.style.display = showLinks ? 'none' : '';
+/** Remove content-view listeners so a test can re-init cleanly. */
+export function destroyContentView() {
+  if (switcherClickHandler) {
+    elSwitcher.removeEventListener('click', switcherClickHandler);
+    switcherClickHandler = null;
+  }
+  isTransitioning = false;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
