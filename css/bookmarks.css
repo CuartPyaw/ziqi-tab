@@ -13,9 +13,23 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 3px;
+  position: relative;
+}
+
+.content-switcher-pill {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  background: var(--accent);
+  border-radius: calc(var(--radius-sm) - 2px);
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
 }
 
 .content-switcher-btn {
+  position: relative;
+  z-index: 1;
   font-family: var(--font);
   font-size: 0.8125rem;
   font-weight: 500;
@@ -25,7 +39,7 @@
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: color 0.15s ease;
 }
 
 .content-switcher-btn:hover {
@@ -33,9 +47,50 @@
 }
 
 .content-switcher-btn.is-active {
-  background: var(--accent);
   color: #fff;
 }
+
+/* ── Content Stage (quick-links / bookmarks-section wrapper) ─── */
+
+.content-stage {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  transition: height 0.22s ease;
+}
+
+.content-stage.is-transitioning > .quick-links,
+.content-stage.is-transitioning > .bookmarks-section {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+@keyframes content-slide-out-to-left {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-28px); }
+}
+
+@keyframes content-slide-in-from-right {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes content-slide-out-to-right {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(28px); }
+}
+
+@keyframes content-slide-in-from-left {
+  from { opacity: 0; transform: translateX(-28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.content-slide-out-to-left   { animation: content-slide-out-to-left 0.22s ease-in forwards; }
+.content-slide-in-from-right { animation: content-slide-in-from-right 0.24s ease-out forwards; }
+.content-slide-out-to-right  { animation: content-slide-out-to-right 0.22s ease-in forwards; }
+.content-slide-in-from-left  { animation: content-slide-in-from-left 0.24s ease-out forwards; }
 
 /* ── Bookmarks Section ────────────────── */
 
