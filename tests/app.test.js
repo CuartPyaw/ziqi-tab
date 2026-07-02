@@ -114,16 +114,28 @@ describe('content view switcher transition', () => {
   });
 
   it('positions the sliding pill behind the active button on init and after switching', () => {
-    const pill = document.getElementById('content-switcher-pill');
     const linksButton = document.querySelector('.content-switcher-btn[data-view="links"]');
     const bookmarksButton = document.querySelector('.content-switcher-btn[data-view="bookmarks"]');
+    const pill = document.getElementById('content-switcher-pill');
 
-    expect(pill.style.width).toBe(`${linksButton.offsetWidth}px`);
-    expect(pill.style.transform).toBe(`translateX(${linksButton.offsetLeft}px)`);
+    // jsdom never computes real layout (offsetWidth/offsetLeft are always 0),
+    // so give the two buttons distinct fake geometry — otherwise both buttons
+    // produce the same '0px'/'translateX(0px)' expectation and the assertions
+    // below can't tell "positioned to the right button" from "never ran".
+    Object.defineProperty(linksButton, 'offsetWidth', { value: 80, configurable: true });
+    Object.defineProperty(linksButton, 'offsetLeft', { value: 3, configurable: true });
+    Object.defineProperty(bookmarksButton, 'offsetWidth', { value: 64, configurable: true });
+    Object.defineProperty(bookmarksButton, 'offsetLeft', { value: 85, configurable: true });
+
+    destroyContentView();
+    initContentView();
+
+    expect(pill.style.width).toBe('80px');
+    expect(pill.style.transform).toBe('translateX(3px)');
 
     bookmarksButton.click();
 
-    expect(pill.style.width).toBe(`${bookmarksButton.offsetWidth}px`);
-    expect(pill.style.transform).toBe(`translateX(${bookmarksButton.offsetLeft}px)`);
+    expect(pill.style.width).toBe('64px');
+    expect(pill.style.transform).toBe('translateX(85px)');
   });
 });
