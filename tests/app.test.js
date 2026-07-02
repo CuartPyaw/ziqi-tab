@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { initContentView, destroyContentView } from '../js/app.js';
 
 describe('app bootstrap', () => {
@@ -137,5 +137,19 @@ describe('content view switcher transition', () => {
 
     expect(pill.style.width).toBe('64px');
     expect(pill.style.transform).toBe('translateX(85px)');
+  });
+
+  afterEach(() => {
+    const links = document.querySelector('.content-switcher-btn[data-view="links"]');
+    const bookmarks = document.querySelector('.content-switcher-btn[data-view="bookmarks"]');
+    if (links) {
+      // configurable:true descriptors can be deleted to restore inherited defaults
+      delete links.offsetWidth;
+      delete links.offsetLeft;
+    }
+    if (bookmarks) {
+      delete bookmarks.offsetWidth;
+      delete bookmarks.offsetLeft;
+    }
   });
 });

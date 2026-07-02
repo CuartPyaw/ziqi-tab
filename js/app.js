@@ -19,6 +19,7 @@ const elBookmarksSection = document.getElementById('bookmarks-section');
 
 let isTransitioning = false;
 let switcherClickHandler = null;
+let defaultViewHandler = null;
 
 function getActiveButton() {
   return elSwitcher.querySelector('.content-switcher-btn.is-active');
@@ -86,7 +87,6 @@ function switchView(view) {
   toPanel.classList.add(enterClass);
 
   toPanel.addEventListener('animationend', function onEnd() {
-    toPanel.removeEventListener('animationend', onEnd);
 
     elStage.classList.remove('is-transitioning');
     elStage.style.height = '';
@@ -94,7 +94,7 @@ function switchView(view) {
     toPanel.classList.remove(enterClass);
 
     fromPanel.hidden = true;
-    fromPanel.style.display = 'none';
+    fromPanel.style.display = 'none'; // redundant with [hidden] !important rule but kept for pre-existing contract consistency
 
     isTransitioning = false;
   }, { once: true });
@@ -118,9 +118,11 @@ export function initContentView() {
   // Record default view preference from settings (no view switch needed;
   // the new default applies on next new-tab load. This listener exists
   // as an extension point for live default application.)
-  window.addEventListener('default-view-changed', () => {
+  if (defaultViewHandler) window.removeEventListener('default-view-changed', defaultViewHandler);
+  defaultViewHandler = () => {
     // preference already saved by settings.js
-  });
+  };
+  window.addEventListener('default-view-changed', defaultViewHandler);
 }
 
 /** Remove content-view listeners so a test can re-init cleanly. */
@@ -128,6 +130,10 @@ export function destroyContentView() {
   if (switcherClickHandler) {
     elSwitcher.removeEventListener('click', switcherClickHandler);
     switcherClickHandler = null;
+  }
+  if (defaultViewHandler) {
+    window.removeEventListener('default-view-changed', defaultViewHandler);
+    defaultViewHandler = null;
   }
   isTransitioning = false;
 }
