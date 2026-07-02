@@ -120,6 +120,31 @@ describe('settings tabs', () => {
   });
 });
 
+describe('bottom shortcuts', () => {
+  it('extensions shortcut exists with correct href', () => {
+    const el = document.querySelector('a[href="chrome://extensions"]');
+    expect(el).not.toBeNull();
+    expect(el.classList.contains('settings-btn')).toBe(true);
+    expect(el.getAttribute('title')).toBe('扩展程序');
+    expect(el.getAttribute('aria-label')).toBe('扩展程序');
+    expect(el.querySelector('svg').getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('history shortcut exists with correct href', () => {
+    const el = document.querySelector('a[href="chrome://history"]');
+    expect(el).not.toBeNull();
+    expect(el.classList.contains('settings-btn')).toBe(true);
+    expect(el.getAttribute('title')).toBe('历史记录');
+    expect(el.getAttribute('aria-label')).toBe('历史记录');
+    expect(el.querySelector('svg').getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('existing settings toggle and theme toggle remain present', () => {
+    expect(document.getElementById('settings-toggle')).not.toBeNull();
+    expect(document.getElementById('theme-toggle')).not.toBeNull();
+  });
+});
+
 describe('engine management', () => {
   it('renders preset engines in the list', () => {
     document.getElementById('settings-toggle').click();
