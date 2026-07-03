@@ -323,15 +323,6 @@ export function initSettings() {
     }
   });
 
-  // Engine edit/delete from search menu (events dispatched from search.js)
-  document.addEventListener('engine-edit', (e) => {
-    openEngineForm(e.detail.id);
-  });
-
-  document.addEventListener('engine-delete', (e) => {
-    deleteEngine(e.detail.id);
-  });
-
   // Listen for external engine changes to refresh list
   window.addEventListener('engines-changed', () => {
     renderEngineList();

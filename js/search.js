@@ -104,19 +104,73 @@ function cycleEngine(direction) {
 
 /* ── Render ────────────────────────────── */
 
+function domainToSlug(url) {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, '');
+    const parts = host.split('.');
+    if (parts.length >= 2) return parts[parts.length - 2];
+    return host;
+  } catch {
+    return null;
+  }
+}
+
+function engineIconUrl(engine) {
+  if (engine.icon) return engine.icon;
+  try {
+    new URL(engine.url);
+  } catch {
+    return null;
+  }
+  if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL) {
+    return chrome.runtime.getURL(`/_favicon/?pageUrl=${encodeURIComponent(engine.url)}&size=32`);
+  }
+  const slug = domainToSlug(engine.url);
+  return slug ? `https://cdn.simpleicons.org/${slug}` : null;
+}
+
+function fallbackLetter(name) {
+  return (name || '?').charAt(0).toUpperCase();
+}
+
+function badgeColor(name) {
+  const seed = [...(name || '?')].reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+  return `hsl(${seed % 360} 68% 46%)`;
+}
+
+function renderLetterBadge(el, name) {
+  el.textContent = fallbackLetter(name);
+  el.style.backgroundColor = badgeColor(name);
+  el.style.color = '#fff';
+}
+
+function createLetterBadge(name, className) {
+  const letter = document.createElement('span');
+  letter.className = className;
+  renderLetterBadge(letter, name);
+  return letter;
+}
+
+function renderTriggerLetter(engine) {
+  elEngineIcon.setAttribute('hidden', '');
+  renderLetterBadge(elEngineLetter, engine.name);
+  elEngineLetter.removeAttribute('hidden');
+}
+
 function renderTriggerIcon() {
   const engine = getCurrentEngine();
-  if (engine.builtin && engine.icon) {
-    elEngineIcon.src = engine.icon;
+  const iconSrc = engineIconUrl(engine);
+  if (iconSrc) {
+    elEngineIcon.onerror = () => renderTriggerLetter(engine);
+    elEngineIcon.src = iconSrc;
     elEngineIcon.alt = engine.name;
     elEngineIcon.removeAttribute('hidden');
     elEngineLetter.setAttribute('hidden', '');
   } else {
-    elEngineIcon.setAttribute('hidden', '');
-    elEngineLetter.textContent = engine.name.charAt(0).toUpperCase();
-    elEngineLetter.removeAttribute('hidden');
+    renderTriggerLetter(engine);
   }
-  elIconBtn.title = `${engine.name} · 点击切换 | Tab 循环`;
+  elIconBtn.title = `${engine.name} · 点击选择搜索引擎 | Tab 循环`;
+  elIconBtn.setAttribute('aria-label', `${engine.name}，点击选择搜索引擎`);
 }
 
 function renderMenu() {
@@ -139,59 +193,27 @@ function renderMenu() {
     btn.type = 'button';
     btn.setAttribute('data-value', engine.id);
     btn.setAttribute('role', 'menuitem');
+    btn.setAttribute('title', engine.name);
+    btn.setAttribute('aria-label', engine.name);
+    if (engine.id === currentEngine) btn.setAttribute('aria-current', 'true');
 
-    // Icon: builtin = SVG img, custom = first-letter span
-    if (engine.builtin && engine.icon) {
+    const iconSrc = engineIconUrl(engine);
+    if (iconSrc) {
       const img = document.createElement('img');
       img.className = 'engine-option-icon';
-      img.src = engine.icon;
+      img.src = iconSrc;
       img.alt = '';
+      img.onerror = () => img.replaceWith(createLetterBadge(engine.name, 'engine-option-letter'));
       btn.appendChild(img);
     } else {
-      const letter = document.createElement('span');
-      letter.className = 'engine-option-letter';
-      letter.textContent = engine.name.charAt(0).toUpperCase();
-      btn.appendChild(letter);
-    }
-
-    // Name
-    const name = document.createElement('span');
-    name.textContent = engine.name;
-    btn.appendChild(name);
-
-    // Edit/Delete buttons for custom engines
-    if (!engine.builtin) {
-      const actions = document.createElement('span');
-      actions.className = 'engine-option-actions';
-      actions.innerHTML = `<button type="button" class="engine-edit-btn" data-id="${engine.id}" title="编辑">✏️</button><button type="button" class="engine-delete-btn" data-id="${engine.id}" title="删除">🗑️</button>`;
-      btn.appendChild(actions);
+      btn.appendChild(createLetterBadge(engine.name, 'engine-option-letter'));
     }
 
     btn.addEventListener('click', (e) => {
-      // Ignore clicks on edit/delete buttons (they dispatch custom events)
-      if (e.target.classList.contains('engine-edit-btn') || e.target.classList.contains('engine-delete-btn')) return;
       selectEngine(engine.id);
     });
 
     elMenu.appendChild(btn);
-  });
-
-  // Bind edit/delete button events
-  elMenu.querySelectorAll('.engine-edit-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = btn.getAttribute('data-id');
-      document.dispatchEvent(new CustomEvent('engine-edit', { detail: { id } }));
-      closeMenu();
-    });
-  });
-  elMenu.querySelectorAll('.engine-delete-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = btn.getAttribute('data-id');
-      document.dispatchEvent(new CustomEvent('engine-delete', { detail: { id } }));
-      closeMenu();
-    });
   });
 }
 
@@ -202,7 +224,8 @@ function openMenu() {
   elMenu.classList.remove('anim-out');
   elMenu.classList.add('anim-in');
   elBackdrop.removeAttribute('hidden');
-  elChevronBtn.classList.add('open');
+  elIconBtn.classList.add('open');
+  elIconBtn.setAttribute('aria-expanded', 'true');
   renderMenu();
 
   // Arrow key navigation within menu
@@ -240,7 +263,8 @@ function closeMenu() {
     elMenu.setAttribute('hidden', '');
     elMenu.classList.remove('anim-out');
     elBackdrop.setAttribute('hidden', '');
-    elChevronBtn.classList.remove('open');
+    elIconBtn.classList.remove('open');
+    elIconBtn.setAttribute('aria-expanded', 'false');
     if (menuKeyHandler) {
       document.removeEventListener('keydown', menuKeyHandler);
       menuKeyHandler = null;
@@ -289,14 +313,14 @@ export function initSearch() {
   // Initial render
   renderTriggerIcon();
 
-  // Icon button click → cycle to next engine
-  _addClean(elIconBtn, 'click', (e) => {
-    e.stopPropagation();
-    cycleEngine(+1);
-  });
+  elIconBtn.setAttribute('aria-haspopup', 'true');
+  elIconBtn.setAttribute('aria-expanded', 'false');
+  elChevronBtn.setAttribute('hidden', '');
+  elChevronBtn.setAttribute('aria-hidden', 'true');
+  elChevronBtn.tabIndex = -1;
 
-  // Chevron button click → toggle menu
-  _addClean(elChevronBtn, 'click', (e) => {
+  // Icon button click → toggle engine menu
+  _addClean(elIconBtn, 'click', (e) => {
     e.stopPropagation();
     toggleMenu();
   });
@@ -312,7 +336,7 @@ export function initSearch() {
     // Escape → close menu
     if (e.key === 'Escape' && !elMenu.hasAttribute('hidden')) {
       closeMenu();
-      elChevronBtn.focus();
+      elIconBtn.focus();
       return;
     }
 
