@@ -36,6 +36,7 @@ const matchMediaMock = (query) => ({
   dispatchEvent: () => false,
 });
 vi.stubGlobal('matchMedia', matchMediaMock);
+vi.stubGlobal('alert', vi.fn());
 
 // ── DataTransfer Polyfill ──────────────────
 // jsdom does not implement DataTransfer / DragEvent.dataTransfer.
@@ -98,28 +99,9 @@ document.body.innerHTML = `
     </div>
   </header>
 
-  <div class="content-switcher" id="content-switcher">
-    <div class="content-switcher-pill" id="content-switcher-pill"></div>
-    <button class="content-switcher-btn is-active" data-view="links">快捷网址</button>
-    <button class="content-switcher-btn" data-view="bookmarks">书签栏</button>
-  </div>
-
   <div class="content-stage" id="content-stage">
   <section class="quick-links" id="quick-links">
     <ul class="links-grid" id="links-grid"></ul>
-  </section>
-
-  <section class="bookmarks-section" id="bookmarks-section" hidden>
-    <div class="bookmark-folder-header" id="bookmark-folder-header" hidden>
-      <button class="bookmark-back-btn" id="bookmark-back-btn" type="button" title="返回">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
-      <span class="bookmark-folder-title" id="bookmark-folder-title"></span>
-    </div>
-    <ul class="bookmarks-grid" id="bookmarks-grid"></ul>
-    <div class="bookmark-empty-state" id="bookmark-empty-state" hidden>
-      <p class="bookmark-empty-text" id="bookmark-empty-text"></p>
-    </div>
   </section>
   </div>
     </div>
@@ -128,6 +110,9 @@ document.body.innerHTML = `
 <footer class="settings-bar">
     <button id="extensions-shortcut" class="settings-btn" type="button" title="扩展程序" aria-label="扩展程序" data-browser-url="chrome://extensions/">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 12.5V8a2 2 0 0 0-2-2h-4.5a2.5 2.5 0 0 1-5 0H4a2 2 0 0 0-2 2v4.5a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1-5 0V20a2 2 0 0 0 2 2h4.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5H20a2 2 0 0 0 2-2v-4.5a2.5 2.5 0 0 1-5 0 2.5 2.5 0 0 1 5 0Z"/></svg>
+    </button>
+    <button id="bookmarks-shortcut" class="settings-btn" type="button" title="书签" aria-label="书签" data-browser-url="chrome://bookmarks/">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
     </button>
     <button id="history-shortcut" class="settings-btn" type="button" title="历史记录" aria-label="历史记录" data-browser-url="chrome://history/">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
@@ -175,7 +160,6 @@ document.body.innerHTML = `
         <button type="button" class="settings-nav-item" data-tab="engines">
           搜索引擎
         </button>
-        <button type="button" class="settings-nav-item" data-tab="display">显示</button>
       </nav>
       <div class="settings-panels" id="settings-panels">
         <div class="settings-panel active" data-panel="search">
@@ -192,22 +176,6 @@ document.body.innerHTML = `
           <h3 class="settings-panel-title">搜索引擎</h3>
           <ul class="engine-list" id="engine-list"></ul>
           <button type="button" class="engine-add-btn" id="engine-add-btn">+ 添加搜索引擎</button>
-        </div>
-        <div class="settings-panel" data-panel="display">
-          <h3 class="settings-panel-title">显示</h3>
-          <div class="settings-item">
-            <label class="settings-label">默认内容</label>
-            <div class="settings-radio-group">
-              <label class="settings-radio">
-                <input type="radio" name="default-view" value="links" checked>
-                <span>快捷网址</span>
-              </label>
-              <label class="settings-radio">
-                <input type="radio" name="default-view" value="bookmarks">
-                <span>书签栏</span>
-              </label>
-            </div>
-          </div>
         </div>
       </div>
     </div>

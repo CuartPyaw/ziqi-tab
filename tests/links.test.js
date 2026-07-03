@@ -427,6 +427,9 @@ describe('click navigation', () => {
   beforeEach(() => {
     localStorage.clear();
     initLinks();
+    document.querySelectorAll('.link-item').forEach(link => {
+      link.href = '#test-link';
+    });
   });
 
   it('adds animate__pulse and click-pulse classes on link click', () => {

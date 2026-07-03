@@ -73,35 +73,6 @@ describe('dialog', () => {
     expect(document.documentElement.style.getPropertyValue('--search-width')).toBe('600px');
   });
 
-  it('does not persist default view when dialog closes without save', () => {
-    document.getElementById('settings-toggle').click();
-    document.querySelector('[data-tab="display"]').click();
-
-    const bookmarksRadio = document.querySelector('input[name="default-view"][value="bookmarks"]');
-    bookmarksRadio.checked = true;
-    bookmarksRadio.dispatchEvent(new Event('change', { bubbles: true }));
-
-    document.querySelector('#settings-dialog [value="cancel"]').click();
-
-    expect(localStorage.getItem('ziqi-default-view')).toBeNull();
-
-    document.getElementById('settings-toggle').click();
-    expect(document.querySelector('input[name="default-view"][value="links"]').checked).toBe(true);
-    expect(document.querySelector('input[name="default-view"][value="bookmarks"]').checked).toBe(false);
-  });
-
-  it('persists default view on save button click', () => {
-    document.getElementById('settings-toggle').click();
-    document.querySelector('[data-tab="display"]').click();
-
-    const bookmarksRadio = document.querySelector('input[name="default-view"][value="bookmarks"]');
-    bookmarksRadio.checked = true;
-    bookmarksRadio.dispatchEvent(new Event('change', { bubbles: true }));
-
-    document.getElementById('settings-save').click();
-
-    expect(localStorage.getItem('ziqi-default-view')).toBe('bookmarks');
-  });
 });
 
 describe('settings tabs', () => {
@@ -141,6 +112,18 @@ describe('bottom shortcuts', () => {
     expect(el.dataset.browserUrl).toBe('chrome://history/');
     expect(el.getAttribute('title')).toBe('历史记录');
     expect(el.getAttribute('aria-label')).toBe('历史记录');
+    expect(el.getAttribute('type')).toBe('button');
+    expect(el.querySelector('svg').getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('bookmarks shortcut exists with correct target', () => {
+    const el = document.getElementById('bookmarks-shortcut');
+    expect(el).not.toBeNull();
+    expect(el.tagName).toBe('BUTTON');
+    expect(el.classList.contains('settings-btn')).toBe(true);
+    expect(el.dataset.browserUrl).toBe('chrome://bookmarks/');
+    expect(el.getAttribute('title')).toBe('书签');
+    expect(el.getAttribute('aria-label')).toBe('书签');
     expect(el.getAttribute('type')).toBe('button');
     expect(el.querySelector('svg').getAttribute('aria-hidden')).toBe('true');
   });
