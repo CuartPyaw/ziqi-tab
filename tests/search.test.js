@@ -210,25 +210,13 @@ describe('search', () => {
     window.location = origLoc;
   });
 
-  // ── Engine Cycling ──────────────────────
+  // ── Engine Menu / Tab Shortcut ──────────
 
   it('opens the menu without cycling when icon button is clicked', () => {
     document.getElementById('engine-icon-btn').click();
     expect(document.getElementById('engine-icon').src).toMatch(/\/icons\/google\.svg$/);
     expect(localStorage.getItem('ziqi-engine')).toBe('google');
     expect(document.getElementById('engine-menu').hasAttribute('hidden')).toBe(false);
-  });
-
-  it('keeps keyboard cycling after selecting the last engine', () => {
-    // Select duckduckgo via menu to set the internal state
-    document.getElementById('engine-icon-btn').click();
-    document.querySelector('[data-value="duckduckgo"]').click();
-    document.getElementById('engine-menu').dispatchEvent(new Event('animationend'));
-
-    const input = document.getElementById('search-input');
-    input.focus();
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: false, bubbles: true }));
-    expect(document.getElementById('engine-icon').src).toMatch(/\/icons\/google\.svg$/);
   });
 
   it('opens the menu when only one engine exists', () => {
@@ -241,18 +229,71 @@ describe('search', () => {
 
   // ── Tab Keyboard ────────────────────────
 
-  it('switches to next engine on Tab when input is focused', () => {
+  it('does not switch normal engines on a single Tab when input is focused', () => {
     const input = document.getElementById('search-input');
     input.focus();
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: false, bubbles: true }));
-    expect(document.getElementById('engine-icon').src).toMatch(/\/icons\/bing\.svg$/);
+    expect(document.getElementById('engine-icon').src).toMatch(/\/icons\/google\.svg$/);
   });
 
-  it('switches to previous engine on Shift+Tab when input is focused', () => {
+  it('does not switch normal engines on Shift+Tab when input is focused', () => {
     const input = document.getElementById('search-input');
     input.focus();
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }));
-    expect(document.getElementById('engine-icon').src).toMatch(/\/icons\/duckduckgo\.svg$/);
+    expect(document.getElementById('engine-icon').src).toMatch(/\/icons\/google\.svg$/);
+  });
+
+  it('opens AI search on a quick double Tab', async () => {
+    const input = document.getElementById('search-input');
+    input.focus();
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    await vi.advanceTimersByTimeAsync(150);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+
+    const items = document.querySelectorAll('.search-suggestion');
+    expect(document.getElementById('search-suggestions').hasAttribute('hidden')).toBe(false);
+    expect(items[0]?.textContent).toBe('AI 智能搜索 · DeepSeek');
+    expect(items[1]?.textContent).toBe('AI 智能搜索 · ChatGPT');
+    expect(document.getElementById('engine-icon').src).toMatch(/\/icons\/google\.svg$/);
+  });
+
+  it('uses DeepSeek by default when Enter is pressed with AI search open', async () => {
+    const origLoc = window.location;
+    delete window.location;
+    const captured = { href: '' };
+    window.location = captured;
+
+    const input = document.getElementById('search-input');
+    input.value = 'hello ai';
+    input.focus();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    await vi.advanceTimersByTimeAsync(150);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+
+    expect(captured.href).toBe('https://chat.deepseek.com/?q=hello%20ai');
+    window.location = origLoc;
+  });
+
+  it('cycles AI targets with Tab once the AI search panel is open', async () => {
+    const origLoc = window.location;
+    delete window.location;
+    const captured = { href: '' };
+    window.location = captured;
+
+    const input = document.getElementById('search-input');
+    input.value = 'compare models';
+    input.focus();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    await vi.advanceTimersByTimeAsync(150);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+
+    expect(document.querySelector('.search-suggestion.is-highlighted')?.textContent).toBe('AI 智能搜索 · ChatGPT');
+    expect(captured.href).toBe('https://chatgpt.com/?q=compare%20models');
+    window.location = origLoc;
   });
 
   // ── Custom Engines ──────────────────────
@@ -354,6 +395,23 @@ describe('search', () => {
       expect(panel.hasAttribute('hidden')).toBe(false);
       expect(items).toHaveLength(2);
       expect(items[0].textContent).toBe('hello');
+    });
+
+    it('inserts AI search entries before normal suggestions after double Tab', async () => {
+      queueSuggestionResponse(['hello', 'hello kitty']);
+
+      const input = await typeAndFlushSuggestions('hel');
+      input.focus();
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+      await vi.advanceTimersByTimeAsync(150);
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+
+      const items = document.querySelectorAll('.search-suggestion');
+      expect(items).toHaveLength(4);
+      expect(items[0].textContent).toBe('AI 智能搜索 · DeepSeek');
+      expect(items[1].textContent).toBe('AI 智能搜索 · ChatGPT');
+      expect(items[2].textContent).toBe('hello');
+      expect(items[3].textContent).toBe('hello kitty');
     });
 
     it('hides suggestions for blank input without calling fetch', async () => {

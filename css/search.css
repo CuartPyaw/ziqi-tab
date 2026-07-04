@@ -315,3 +315,7 @@
 .search-suggestion.is-highlighted {
   background: var(--surface-hover);
 }
+
+.search-suggestion--ai {
+  font-weight: 600;
+}

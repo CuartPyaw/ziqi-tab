@@ -85,7 +85,7 @@ document.body.innerHTML = `
         <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
         <input type="text" id="search-input" class="search-input" placeholder="搜索…" autofocus autocomplete="off">
         <div class="engine-dropdown" id="engine-dropdown">
-          <button class="engine-icon-btn" id="engine-icon-btn" type="button" title="点击选择搜索引擎 | Tab 循环" aria-haspopup="true" aria-expanded="false">
+          <button class="engine-icon-btn" id="engine-icon-btn" type="button" title="点击选择搜索引擎" aria-haspopup="true" aria-expanded="false">
             <img class="engine-icon" id="engine-icon" src="" alt="">
             <span class="engine-letter" id="engine-letter" hidden></span>
           </button>
