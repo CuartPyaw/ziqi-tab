@@ -1,0 +1,32 @@
+# Repository Context
+
+- Repository root: `C:\Users\Aodsp\MyApps\chrome_extensions\ziqi-tab`
+- This is a Manifest V3 Chrome extension that overrides the new-tab page.
+- Search behavior currently lives in `js/search.js`.
+- The current search module already handles:
+  - engine selection
+  - engine menu open/close
+  - current-engine persistence in `localStorage`
+  - Enter-to-search navigation
+  - `Tab` / `Shift+Tab` engine cycling when the input is focused and the engine menu is closed
+- Relevant files:
+  - `manifest.json`
+  - `newtab.html`
+  - `css/search.css`
+  - `js/search.js`
+  - `tests/setup.js`
+  - `tests/search.test.js`
+- Existing tests run with Vitest + jsdom.
+- The DOM skeleton for tests is defined in `tests/setup.js`, and modules resolve DOM nodes at import time, so any new search DOM must also be added there.
+- There is already a design spec at:
+  - `docs/superpowers/specs/2026-07-04-google-search-suggestions-design.md`
+- There is already a detailed implementation plan at:
+  - `docs/superpowers/plans/2026-07-04-google-search-suggestions-plan.md`
+- Notes from local investigation:
+  - The current codebase has no suggestions logic at all.
+  - The search input is currently `autocomplete="off"`.
+  - `js/search.js` currently uses a document-level keydown handler for engine cycling and an input keydown handler for Enter.
+  - `docs/` is gitignored in this repository, so do not assume plan/spec docs are tracked.
+- Important behavior boundary:
+  - While the suggestions panel is open, `Tab` belongs to suggestions, not to engine cycling.
+  - While the suggestions panel is closed, the existing engine-cycling behavior must remain intact.

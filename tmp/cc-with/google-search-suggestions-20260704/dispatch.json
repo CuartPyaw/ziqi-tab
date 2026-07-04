@@ -1,0 +1,22 @@
+{
+  "task_id": "google-search-suggestions-20260704",
+  "repo_root": "C:\\Users\\Aodsp\\MyApps\\chrome_extensions\\ziqi-tab",
+  "task_package_root": "C:\\Users\\Aodsp\\MyApps\\chrome_extensions\\ziqi-tab\\tmp\\cc-with\\google-search-suggestions-20260704",
+  "execution_mode": "git-worktree",
+  "required_workflow": "superpowers:subagent-driven-development",
+  "require_superpowers": true,
+  "allow_main_workspace_execution": false,
+  "return_artifacts": [
+    "worktree_path",
+    "branch",
+    "head_commit",
+    "subagent_workflow_used",
+    "summary",
+    "files_changed",
+    "checks_run",
+    "checks_passed",
+    "known_risks",
+    "deviations_from_plan",
+    "followups"
+  ]
+}

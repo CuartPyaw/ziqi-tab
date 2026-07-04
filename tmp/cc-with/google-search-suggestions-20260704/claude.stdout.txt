@@ -1,0 +1,16 @@
+Using the finishing-a-development-branch skill to complete this work.
+
+**Step 1: 测试已确认通过** ✅ (122/122)
+**Step 2: 环境检测** — 隔离工作区，命名分支 `worktree-google-search-suggestions`
+**Step 3: Base 分支** — `main` (merge-base: d100754)
+
+---
+
+实现已完成。请选择操作：
+
+1. **合并到 main 分支**（本地合并 + 清理工作区）
+2. **推送并创建 Pull Request**
+3. **保留分支不变**（稍后自行处理）
+4. **放弃此工作**（永久删除所有更改）
+
+哪个选项？

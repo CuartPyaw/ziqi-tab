@@ -7,6 +7,7 @@ import { initSearch, destroySearch } from '../js/search.js';
 
 describe('search', () => {
   let fetchMock;
+  let sendMessageMock;
 
   afterEach(() => {
     delete globalThis.chrome;
@@ -29,6 +30,12 @@ describe('search', () => {
     vi.useFakeTimers();
     fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
+    sendMessageMock = vi.fn();
+    globalThis.chrome = {
+      runtime: {
+        sendMessage: sendMessageMock,
+      },
+    };
     document.getElementById('search-suggestions').setAttribute('hidden', '');
     document.getElementById('search-suggestion-list').innerHTML = '';
 
@@ -45,9 +52,8 @@ describe('search', () => {
   }
 
   function queueSuggestionResponse(suggestions) {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ['', suggestions],
+    sendMessageMock.mockResolvedValueOnce({
+      suggestions,
     });
   }
 
@@ -287,6 +293,7 @@ describe('search', () => {
   it('uses Chrome favicon URLs for custom engine icons inside the extension', () => {
     globalThis.chrome = {
       runtime: {
+        sendMessage: sendMessageMock,
         getURL: (path) => `chrome-extension://test${path}`,
       },
     };
@@ -338,7 +345,12 @@ describe('search', () => {
       const panel = document.getElementById('search-suggestions');
       const items = document.querySelectorAll('.search-suggestion');
 
-      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(sendMessageMock).toHaveBeenCalledTimes(1);
+      expect(sendMessageMock).toHaveBeenCalledWith({
+        type: 'ziqi:get-search-suggestions',
+        query: 'hel',
+      });
+      expect(fetchMock).not.toHaveBeenCalled();
       expect(panel.hasAttribute('hidden')).toBe(false);
       expect(items).toHaveLength(2);
       expect(items[0].textContent).toBe('hello');
@@ -385,7 +397,7 @@ describe('search', () => {
       let resolveFirst;
       let resolveSecond;
 
-      fetchMock
+      sendMessageMock
         .mockImplementationOnce(() => new Promise((resolve) => { resolveFirst = resolve; }))
         .mockImplementationOnce(() => new Promise((resolve) => { resolveSecond = resolve; }));
 
@@ -398,9 +410,9 @@ describe('search', () => {
       input.dispatchEvent(new Event('input', { bubbles: true }));
       await vi.advanceTimersByTimeAsync(200);
 
-      resolveSecond({ ok: true, json: async () => ['', ['abacus']] });
+      resolveSecond({ suggestions: ['abacus'] });
       await Promise.resolve();
-      resolveFirst({ ok: true, json: async () => ['', ['apple']] });
+      resolveFirst({ suggestions: ['apple'] });
       await Promise.resolve();
 
       const items = document.querySelectorAll('.search-suggestion');

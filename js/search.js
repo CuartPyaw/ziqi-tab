@@ -17,6 +17,7 @@ const elSuggestions = document.getElementById('search-suggestions');
 const elSuggestionList = document.getElementById('search-suggestion-list');
 
 const GOOGLE_SUGGEST_URL = 'https://suggestqueries.google.com/complete/search?client=chrome&q=';
+const SUGGESTION_MESSAGE_TYPE = 'ziqi:get-search-suggestions';
 const SUGGESTION_LIMIT = 6;
 const SUGGESTION_DEBOUNCE_MS = 200;
 
@@ -364,16 +365,27 @@ function moveSuggestionHighlight(direction) {
   renderSuggestions();
 }
 
+async function requestSuggestions(query) {
+  if (typeof chrome !== 'undefined' && chrome.runtime && typeof chrome.runtime.sendMessage === 'function') {
+    return chrome.runtime.sendMessage({
+      type: SUGGESTION_MESSAGE_TYPE,
+      query,
+    });
+  }
+
+  const response = await fetch(GOOGLE_SUGGEST_URL + encodeURIComponent(query));
+  if (!response.ok) return { suggestions: [] };
+
+  const payload = await response.json();
+  return {
+    suggestions: Array.isArray(payload?.[1]) ? payload[1].slice(0, SUGGESTION_LIMIT) : [],
+  };
+}
+
 async function fetchSuggestions(query, requestSeq) {
   try {
-    const response = await fetch(GOOGLE_SUGGEST_URL + encodeURIComponent(query));
-    if (!response.ok) {
-      hideSuggestions();
-      return;
-    }
-
-    const payload = await response.json();
-    const nextItems = Array.isArray(payload?.[1]) ? payload[1].slice(0, SUGGESTION_LIMIT) : [];
+    const payload = await requestSuggestions(query);
+    const nextItems = Array.isArray(payload?.suggestions) ? payload.suggestions.slice(0, SUGGESTION_LIMIT) : [];
 
     if (requestSeq !== suggestionRequestSeq) return;
 

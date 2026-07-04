@@ -3,6 +3,10 @@
   "name": "Ziqi Tab",
   "version": "1.0.0",
   "description": "极简、暖调素纸风格的浏览器起始页",
+  "background": {
+    "service_worker": "js/background.js",
+    "type": "module"
+  },
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },

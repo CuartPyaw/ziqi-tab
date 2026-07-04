@@ -1,0 +1,1 @@
+SessionEnd hook [& "node" "C:/Users/Aodsp/AppData/Local/Programs/Clawd on Desk/resources/app.asar.unpacked/hooks/clawd-hook.js" SessionEnd] failed: Hook cancelled
