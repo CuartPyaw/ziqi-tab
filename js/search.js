@@ -241,6 +241,7 @@ function renderMenu() {
 /* ── Open / Close ──────────────────────── */
 
 function openMenu() {
+  hideSuggestions();
   elMenu.removeAttribute('hidden');
   elMenu.classList.remove('anim-out');
   elMenu.classList.add('anim-in');
@@ -445,23 +446,57 @@ export function initSearch() {
       return;
     }
 
-    // Tab / Shift+Tab → cycle engine when search input is focused and menu is closed
-    if (e.key === 'Tab' && document.activeElement === elInput && elMenu.hasAttribute('hidden')) {
-      e.preventDefault();
-      cycleEngine(e.shiftKey ? -1 : +1);
-      // Brief highlight feedback
-      elIconBtn.classList.add('tab-flash');
-      elIconBtn.addEventListener('animationend', () => {
-        elIconBtn.classList.remove('tab-flash');
-      }, { once: true });
+    // Tab / Shift+Tab → cycle engine or navigate suggestions
+    if (e.key === 'Tab' && document.activeElement === elInput) {
+      if (!elSuggestions.hasAttribute('hidden')) {
+        e.preventDefault();
+        moveSuggestionHighlight(e.shiftKey ? -1 : +1);
+        return;
+      }
+
+      if (elMenu.hasAttribute('hidden')) {
+        e.preventDefault();
+        cycleEngine(e.shiftKey ? -1 : +1);
+        // Brief highlight feedback
+        elIconBtn.classList.add('tab-flash');
+        elIconBtn.addEventListener('animationend', () => {
+          elIconBtn.classList.remove('tab-flash');
+        }, { once: true });
+      }
     }
   });
 
-  // Search on Enter
+  // Keyboard navigation for suggestions + search on Enter
   _addClean(elInput, 'keydown', (e) => {
+    if (e.key === 'ArrowDown' && !elSuggestions.hasAttribute('hidden')) {
+      e.preventDefault();
+      moveSuggestionHighlight(+1);
+      return;
+    }
+
+    if (e.key === 'ArrowUp' && !elSuggestions.hasAttribute('hidden')) {
+      e.preventDefault();
+      moveSuggestionHighlight(-1);
+      return;
+    }
+
+    if (e.key === 'Escape' && !elSuggestions.hasAttribute('hidden')) {
+      e.preventDefault();
+      hideSuggestions();
+      return;
+    }
+
     if (e.key === 'Enter') {
-      const q = elInput.value.trim();
-      if (q) search(q);
+      const query = highlightedSuggestionIndex >= 0
+        ? suggestionItems[highlightedSuggestionIndex]
+        : elInput.value.trim();
+
+      if (!query) return;
+
+      e.preventDefault();
+      elInput.value = query;
+      hideSuggestions();
+      search(query);
     }
   });
 
@@ -470,8 +505,14 @@ export function initSearch() {
     renderTriggerIcon();
   });
 
+  // Trigger suggestions on input
+  _addClean(elInput, 'input', () => {
+    queueSuggestionsFetch(elInput.value);
+  });
+
   // Listen for engine list changes from settings
   _addClean(window, 'engines-changed', () => {
+    hideSuggestions();
     const engines = getAllEngines();
     if (!engines.find(e => e.id === currentEngine)) {
       selectEngine('google', true);
