@@ -6,8 +6,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { initSearch, destroySearch } from '../js/search.js';
 
 describe('search', () => {
+  let fetchMock;
+
   afterEach(() => {
     delete globalThis.chrome;
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   beforeEach(() => {
@@ -21,6 +25,13 @@ describe('search', () => {
     document.getElementById('engine-menu').setAttribute('hidden', '');
     document.getElementById('engine-backdrop').setAttribute('hidden', '');
     document.getElementById('engine-chevron-btn').classList.remove('open');
+
+    vi.useFakeTimers();
+    fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    document.getElementById('search-suggestions').setAttribute('hidden', '');
+    document.getElementById('search-suggestion-list').innerHTML = '';
+
     initSearch();
   });
 
@@ -31,6 +42,22 @@ describe('search', () => {
     const order = JSON.parse(localStorage.getItem('ziqi-engine-order') || '["google","bing","duckduckgo"]');
     order.push(id);
     localStorage.setItem('ziqi-engine-order', JSON.stringify(order));
+  }
+
+  function queueSuggestionResponse(suggestions) {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ['', suggestions],
+    });
+  }
+
+  async function typeAndFlushSuggestions(value) {
+    const input = document.getElementById('search-input');
+    input.value = value;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    await vi.advanceTimersByTimeAsync(200);
+    await Promise.resolve();
+    return input;
   }
 
   // ── Initialization ─────────────────────
@@ -298,5 +325,107 @@ describe('search', () => {
     window.dispatchEvent(new CustomEvent('engines-changed'));
 
     expect(document.getElementById('engine-icon').src).toMatch(/\/icons\/google\.svg$/);
+  });
+
+  // ── Search Suggestions ───────────────────
+
+  describe('search suggestions', () => {
+    it('renders suggestions for non-empty input', async () => {
+      queueSuggestionResponse(['hello', 'hello kitty']);
+
+      await typeAndFlushSuggestions('hel');
+
+      const panel = document.getElementById('search-suggestions');
+      const items = document.querySelectorAll('.search-suggestion');
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(panel.hasAttribute('hidden')).toBe(false);
+      expect(items).toHaveLength(2);
+      expect(items[0].textContent).toBe('hello');
+    });
+
+    it('hides suggestions for blank input without calling fetch', async () => {
+      const input = document.getElementById('search-input');
+      input.value = '   ';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      await vi.advanceTimersByTimeAsync(200);
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(document.getElementById('search-suggestions').hasAttribute('hidden')).toBe(true);
+    });
+
+    it('uses the highlighted suggestion on Enter', async () => {
+      queueSuggestionResponse(['hello', 'hello world']);
+
+      const origLoc = window.location;
+      delete window.location;
+      const captured = { href: '' };
+      window.location = captured;
+
+      const input = await typeAndFlushSuggestions('hel');
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+
+      expect(captured.href).toBe('https://www.google.com/search?q=hello');
+      window.location = origLoc;
+    });
+
+    it('uses Tab to browse suggestions instead of cycling engines while the panel is open', async () => {
+      queueSuggestionResponse(['alpha', 'beta']);
+
+      const input = await typeAndFlushSuggestions('a');
+      input.focus();
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+
+      expect(document.querySelector('.search-suggestion.is-highlighted')?.textContent).toBe('alpha');
+      expect(document.getElementById('engine-icon').src).toMatch(/\/icons\/google\.svg$/);
+    });
+
+    it('ignores stale suggestion responses', async () => {
+      let resolveFirst;
+      let resolveSecond;
+
+      fetchMock
+        .mockImplementationOnce(() => new Promise((resolve) => { resolveFirst = resolve; }))
+        .mockImplementationOnce(() => new Promise((resolve) => { resolveSecond = resolve; }));
+
+      const input = document.getElementById('search-input');
+      input.value = 'a';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      await vi.advanceTimersByTimeAsync(200);
+
+      input.value = 'ab';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      await vi.advanceTimersByTimeAsync(200);
+
+      resolveSecond({ ok: true, json: async () => ['', ['abacus']] });
+      await Promise.resolve();
+      resolveFirst({ ok: true, json: async () => ['', ['apple']] });
+      await Promise.resolve();
+
+      const items = document.querySelectorAll('.search-suggestion');
+      expect(items).toHaveLength(1);
+      expect(items[0].textContent).toBe('abacus');
+    });
+
+    it('searches with the selected engine after choosing a suggestion', async () => {
+      document.getElementById('engine-icon-btn').click();
+      document.querySelector('[data-value="bing"]').click();
+      document.getElementById('engine-menu').dispatchEvent(new Event('animationend'));
+
+      queueSuggestionResponse(['weather today']);
+
+      const origLoc = window.location;
+      delete window.location;
+      const captured = { href: '' };
+      window.location = captured;
+
+      const input = await typeAndFlushSuggestions('weather');
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+
+      expect(captured.href).toBe('https://www.bing.com/search?q=weather%20today');
+      window.location = origLoc;
+    });
   });
 });
