@@ -13,6 +13,18 @@ const STORAGE_KEY = 'ziqi-engine';
 const CUSTOM_KEY = 'ziqi-engines';
 const ORDER_KEY = 'ziqi-engine-order';
 
+const elSuggestions = document.getElementById('search-suggestions');
+const elSuggestionList = document.getElementById('search-suggestion-list');
+
+const GOOGLE_SUGGEST_URL = 'https://suggestqueries.google.com/complete/search?client=chrome&q=';
+const SUGGESTION_LIMIT = 6;
+const SUGGESTION_DEBOUNCE_MS = 200;
+
+let suggestionItems = [];
+let highlightedSuggestionIndex = -1;
+let suggestionRequestSeq = 0;
+let suggestionDebounceTimer = null;
+
 const BUILTIN_ENGINES = {
   google:     { id: 'google',     name: 'Google',     url: 'https://www.google.com/search?q=', icon: 'icons/google.svg',     builtin: true },
   bing:       { id: 'bing',       name: 'Bing',       url: 'https://www.bing.com/search?q=',   icon: 'icons/bing.svg',       builtin: true },
@@ -39,6 +51,15 @@ export function destroySearch() {
     document.removeEventListener('keydown', menuKeyHandler);
     menuKeyHandler = null;
   }
+  if (suggestionDebounceTimer) {
+    clearTimeout(suggestionDebounceTimer);
+    suggestionDebounceTimer = null;
+  }
+  suggestionItems = [];
+  highlightedSuggestionIndex = -1;
+  suggestionRequestSeq = 0;
+  elSuggestionList.innerHTML = '';
+  elSuggestions.setAttribute('hidden', '');
 }
 
 /* ── Engine data layer ──────────────────── */
@@ -220,6 +241,7 @@ function renderMenu() {
 /* ── Open / Close ──────────────────────── */
 
 function openMenu() {
+  hideSuggestions();
   elMenu.removeAttribute('hidden');
   elMenu.classList.remove('anim-out');
   elMenu.classList.add('anim-in');
@@ -300,6 +322,90 @@ function search(query) {
   window.location.href = engine.url + encodeURIComponent(query.trim());
 }
 
+/* ── Suggestion helpers ─────────────────── */
+
+function hideSuggestions() {
+  suggestionItems = [];
+  highlightedSuggestionIndex = -1;
+  elSuggestionList.innerHTML = '';
+  elSuggestions.setAttribute('hidden', '');
+}
+
+function renderSuggestions() {
+  elSuggestionList.innerHTML = '';
+
+  if (suggestionItems.length === 0) {
+    elSuggestions.setAttribute('hidden', '');
+    return;
+  }
+
+  suggestionItems.forEach((text, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'search-suggestion';
+    if (index === highlightedSuggestionIndex) button.classList.add('is-highlighted');
+    button.setAttribute('role', 'option');
+    button.setAttribute('aria-selected', index === highlightedSuggestionIndex ? 'true' : 'false');
+    button.textContent = text;
+    button.addEventListener('click', () => {
+      elInput.value = text;
+      hideSuggestions();
+      search(text);
+    });
+    elSuggestionList.appendChild(button);
+  });
+
+  elSuggestions.removeAttribute('hidden');
+}
+
+function moveSuggestionHighlight(direction) {
+  if (suggestionItems.length === 0) return;
+  highlightedSuggestionIndex = (highlightedSuggestionIndex + direction + suggestionItems.length) % suggestionItems.length;
+  renderSuggestions();
+}
+
+async function fetchSuggestions(query, requestSeq) {
+  try {
+    const response = await fetch(GOOGLE_SUGGEST_URL + encodeURIComponent(query));
+    if (!response.ok) {
+      hideSuggestions();
+      return;
+    }
+
+    const payload = await response.json();
+    const nextItems = Array.isArray(payload?.[1]) ? payload[1].slice(0, SUGGESTION_LIMIT) : [];
+
+    if (requestSeq !== suggestionRequestSeq) return;
+
+    suggestionItems = nextItems;
+    highlightedSuggestionIndex = -1;
+    renderSuggestions();
+  } catch (_) {
+    if (requestSeq === suggestionRequestSeq) hideSuggestions();
+  }
+}
+
+function queueSuggestionsFetch(rawValue) {
+  const query = rawValue.trim();
+
+  if (suggestionDebounceTimer) {
+    clearTimeout(suggestionDebounceTimer);
+    suggestionDebounceTimer = null;
+  }
+
+  if (!query) {
+    suggestionRequestSeq += 1;
+    hideSuggestions();
+    return;
+  }
+
+  const requestSeq = ++suggestionRequestSeq;
+  suggestionDebounceTimer = setTimeout(() => {
+    suggestionDebounceTimer = null;
+    fetchSuggestions(query, requestSeq);
+  }, SUGGESTION_DEBOUNCE_MS);
+}
+
 /* ── Init ──────────────────────────────── */
 
 export function initSearch() {
@@ -340,23 +446,57 @@ export function initSearch() {
       return;
     }
 
-    // Tab / Shift+Tab → cycle engine when search input is focused and menu is closed
-    if (e.key === 'Tab' && document.activeElement === elInput && elMenu.hasAttribute('hidden')) {
-      e.preventDefault();
-      cycleEngine(e.shiftKey ? -1 : +1);
-      // Brief highlight feedback
-      elIconBtn.classList.add('tab-flash');
-      elIconBtn.addEventListener('animationend', () => {
-        elIconBtn.classList.remove('tab-flash');
-      }, { once: true });
+    // Tab / Shift+Tab → cycle engine or navigate suggestions
+    if (e.key === 'Tab' && document.activeElement === elInput) {
+      if (!elSuggestions.hasAttribute('hidden')) {
+        e.preventDefault();
+        moveSuggestionHighlight(e.shiftKey ? -1 : +1);
+        return;
+      }
+
+      if (elMenu.hasAttribute('hidden')) {
+        e.preventDefault();
+        cycleEngine(e.shiftKey ? -1 : +1);
+        // Brief highlight feedback
+        elIconBtn.classList.add('tab-flash');
+        elIconBtn.addEventListener('animationend', () => {
+          elIconBtn.classList.remove('tab-flash');
+        }, { once: true });
+      }
     }
   });
 
-  // Search on Enter
+  // Keyboard navigation for suggestions + search on Enter
   _addClean(elInput, 'keydown', (e) => {
+    if (e.key === 'ArrowDown' && !elSuggestions.hasAttribute('hidden')) {
+      e.preventDefault();
+      moveSuggestionHighlight(+1);
+      return;
+    }
+
+    if (e.key === 'ArrowUp' && !elSuggestions.hasAttribute('hidden')) {
+      e.preventDefault();
+      moveSuggestionHighlight(-1);
+      return;
+    }
+
+    if (e.key === 'Escape' && !elSuggestions.hasAttribute('hidden')) {
+      e.preventDefault();
+      hideSuggestions();
+      return;
+    }
+
     if (e.key === 'Enter') {
-      const q = elInput.value.trim();
-      if (q) search(q);
+      const query = highlightedSuggestionIndex >= 0
+        ? suggestionItems[highlightedSuggestionIndex]
+        : elInput.value.trim();
+
+      if (!query) return;
+
+      e.preventDefault();
+      elInput.value = query;
+      hideSuggestions();
+      search(query);
     }
   });
 
@@ -365,8 +505,14 @@ export function initSearch() {
     renderTriggerIcon();
   });
 
+  // Trigger suggestions on input
+  _addClean(elInput, 'input', () => {
+    queueSuggestionsFetch(elInput.value);
+  });
+
   // Listen for engine list changes from settings
   _addClean(window, 'engines-changed', () => {
+    hideSuggestions();
     const engines = getAllEngines();
     if (!engines.find(e => e.id === currentEngine)) {
       selectEngine('google', true);

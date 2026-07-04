@@ -96,6 +96,9 @@ document.body.innerHTML = `
         </div>
         <div class="engine-backdrop" id="engine-backdrop" hidden></div>
       </div>
+      <div class="search-suggestions" id="search-suggestions" hidden>
+        <div class="search-suggestion-list" id="search-suggestion-list" role="listbox" aria-label="搜索建议"></div>
+      </div>
     </div>
   </header>
 
