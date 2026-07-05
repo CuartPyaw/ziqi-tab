@@ -28,7 +28,7 @@ npm run test:watch    # Watch 模式开发测试
 
 > ⚠️ `start newtab.html`（Windows）或 `open newtab.html`（macOS）在 Chrome 下无法加载 ES Modules（`file://` CORS 限制），页面空白属于正常现象。
 > 调试预览请使用 HTTP 服务器（如 `npx serve .`、`python -m http.server`、`npx live-server`），或直接在扩展模式加载。
-
+```
 ## Architecture
 
 ```
