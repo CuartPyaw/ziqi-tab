@@ -156,7 +156,7 @@
 .engine-menu {
   position: absolute;
   top: calc(100% + 6px);
-  right: 0;
+  left: 50%;
   min-width: 0;
   width: 52px;
   background: var(--surface);
@@ -183,6 +183,8 @@
       rgba(139, 119, 90, calc(0.008 * var(--texture-opacity))) 1px,
       rgba(139, 119, 90, calc(0.008 * var(--texture-opacity))) 2px
     );
+  transform: translateX(-50%);
+  transform-origin: top center;
 }
 
 .engine-menu.anim-in {
@@ -194,13 +196,13 @@
 }
 
 @keyframes menu-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 @keyframes menu-out {
-  from { opacity: 1; transform: translateY(0); }
-  to   { opacity: 0; transform: translateY(-4px); }
+  from { opacity: 1; transform: translateX(-50%) translateY(0); }
+  to   { opacity: 0; transform: translateX(-50%) translateY(-4px); }
 }
 
 /* Menu options */
