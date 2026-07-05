@@ -38,6 +38,15 @@ const matchMediaMock = (query) => ({
 vi.stubGlobal('matchMedia', matchMediaMock);
 vi.stubGlobal('alert', vi.fn());
 
+// jsdom does not implement navigator.clipboard
+if (!navigator.clipboard) {
+  Object.defineProperty(navigator, 'clipboard', {
+    value: { writeText: vi.fn(() => Promise.resolve()) },
+    writable: true,
+    configurable: true,
+  });
+}
+
 // ── DataTransfer Polyfill ──────────────────
 // jsdom does not implement DataTransfer / DragEvent.dataTransfer.
 // Provide minimal stubs so drag-and-drop tests can construct and dispatch events.

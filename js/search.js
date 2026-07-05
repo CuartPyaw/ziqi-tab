@@ -23,7 +23,7 @@ const AI_ENGINES = [
     id: 'deepseek',
     name: 'DeepSeek',
     homeUrl: 'https://chat.deepseek.com/',
-    searchUrl: 'https://chat.deepseek.com/?q=',
+    // ponytail: no searchUrl — DeepSeek web doesn't natively support URL query params
   },
   {
     id: 'chatgpt',
@@ -337,7 +337,16 @@ function search(query) {
 
 function buildAiSearchUrl(engine, query) {
   const trimmed = query.trim();
-  return trimmed ? engine.searchUrl + encodeURIComponent(trimmed) : engine.homeUrl;
+  if (!trimmed || !engine.searchUrl) return engine.homeUrl;
+  return engine.searchUrl + encodeURIComponent(trimmed);
+}
+
+function navigateAiSearch(engine, query) {
+  const trimmed = query.trim();
+  if (!engine.searchUrl && trimmed) {
+    try { navigator.clipboard.writeText(trimmed); } catch (_) { /* ignore */ }
+  }
+  window.location.href = buildAiSearchUrl(engine, query);
 }
 
 function createSuggestionItems() {
@@ -395,7 +404,7 @@ function renderSuggestions() {
     button.textContent = item.text;
     button.addEventListener('click', () => {
       if (item.kind === 'ai') {
-        window.location.href = buildAiSearchUrl(item.engine, elInput.value);
+        navigateAiSearch(item.engine, elInput.value);
         return;
       }
       elInput.value = item.text;
@@ -582,7 +591,7 @@ export function initSearch() {
 
       if (selectedItem?.kind === 'ai') {
         e.preventDefault();
-        window.location.href = buildAiSearchUrl(selectedItem.engine, elInput.value);
+        navigateAiSearch(selectedItem.engine, elInput.value);
         return;
       }
 

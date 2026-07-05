@@ -38,6 +38,7 @@ describe('search', () => {
     };
     document.getElementById('search-suggestions').setAttribute('hidden', '');
     document.getElementById('search-suggestion-list').innerHTML = '';
+    navigator.clipboard.writeText.mockClear?.();
 
     initSearch();
   });
@@ -272,7 +273,8 @@ describe('search', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
 
-    expect(captured.href).toBe('https://chat.deepseek.com/?q=hello%20ai');
+    expect(captured.href).toBe('https://chat.deepseek.com/');
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('hello ai');
     window.location = origLoc;
   });
 
