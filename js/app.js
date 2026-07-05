@@ -6,6 +6,7 @@ import { initTheme, toggleTheme } from './theme.js';
 import { initClock } from './clock.js';
 import { initSearch } from './search.js';
 import { initLinks } from './links.js';
+import { initRecent } from './recent.js';
 import { initSettings } from './settings.js';
 
 /* ── Browser Shortcuts (Extensions / Bookmarks / History) ───────────────── */
@@ -57,24 +58,27 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. Quick Links — grid + dialog CRUD; listens for theme-changed internally
   initLinks();
 
-  // 5. Settings — panel with search bar width control
+  // 5. Recent browsing sites — recent history cards
+  initRecent();
+
+  // 6. Settings — panel with search bar width control
   initSettings();
 
-  // 6. Theme toggle button
+  // 7. Theme toggle button
   document.getElementById('theme-toggle').addEventListener('click', () => {
     toggleTheme();
     window.dispatchEvent(new CustomEvent('theme-changed'));
   });
 
-  // 7. Browser shortcuts — use extension tabs API for chrome:// pages
+  // 8. Browser shortcuts — use extension tabs API for chrome:// pages
   initBrowserShortcuts();
 
-  // 8. 新标签页打开动画 — bounceInUp on the main page
+  // 9. 新标签页打开动画 — fade in on the main page
   const container = document.querySelector('.container');
   container.style.visibility = 'visible';
   const mainPage = document.querySelector('.page--main');
-  mainPage.classList.add('animate__animated', 'animate__bounceInUp');
+  mainPage.classList.add('animate__animated', 'animate__fadeIn');
   mainPage.addEventListener('animationend', () => {
-    mainPage.classList.remove('animate__animated', 'animate__bounceInUp');
+    mainPage.classList.remove('animate__animated', 'animate__fadeIn');
   }, { once: true });
 });

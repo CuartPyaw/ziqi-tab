@@ -6,8 +6,8 @@
 
 .content-stage {
   width: 100%;
-  padding: 0 8px 14px;
-  margin: 0 -8px -14px;
+  padding: 0 8px var(--recent-dock-space);
+  margin: 0 -8px 0;
 }
 
 .quick-links {

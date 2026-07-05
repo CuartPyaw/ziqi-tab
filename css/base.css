@@ -38,6 +38,7 @@
   --radius-sm: 8px;
   --radius-md: 14px;
   --radius-lg: 20px;
+  --recent-dock-space: clamp(8.5rem, 24vh, 10rem);
 
   --font: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", sans-serif;
 }

@@ -115,7 +115,11 @@ document.body.innerHTML = `
   <section class="quick-links" id="quick-links">
     <ul class="links-grid" id="links-grid"></ul>
   </section>
-  </div>
+  <section class="recent-sites" id="recent-sites" hidden>
+    <h4 class="recent-label">最近浏览</h4>
+    <ul class="recent-grid" id="recent-grid"></ul>
+  </section>
+    </div>
     </div>
   </div>
 
