@@ -92,6 +92,7 @@ document.body.innerHTML = `
     <div class="search-wrapper">
       <div class="search-bar" id="search-bar">
         <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <span class="ai-search-chip" id="ai-search-chip" hidden><img id="ai-search-chip-icon" alt=""><span id="ai-search-chip-name"></span></span>
         <input type="text" id="search-input" class="search-input" placeholder="搜索…" autofocus autocomplete="off">
         <div class="engine-dropdown" id="engine-dropdown">
           <button class="engine-icon-btn" id="engine-icon-btn" type="button" title="点击选择搜索引擎" aria-haspopup="true" aria-expanded="false">
@@ -176,6 +177,7 @@ document.body.innerHTML = `
         <button type="button" class="settings-nav-item" data-tab="engines">
           搜索引擎
         </button>
+        <button type="button" class="settings-nav-item" data-tab="ai">AI</button>
       </nav>
       <div class="settings-panels" id="settings-panels">
         <div class="settings-panel active" data-panel="search">
@@ -192,6 +194,11 @@ document.body.innerHTML = `
           <h3 class="settings-panel-title">搜索引擎</h3>
           <ul class="engine-list" id="engine-list"></ul>
           <button type="button" class="engine-add-btn" id="engine-add-btn">+ 添加搜索引擎</button>
+        </div>
+        <div class="settings-panel" data-panel="ai">
+          <h3 class="settings-panel-title">AI</h3>
+          <ul class="ai-site-list" id="ai-site-list"></ul>
+          <button type="button" class="engine-add-btn" id="ai-site-add-btn">+ 添加 AI 网站</button>
         </div>
       </div>
     </div>
@@ -222,6 +229,17 @@ document.body.innerHTML = `
         <button type="submit" class="dialog-btn btn-save">保存</button>
       </div>
     </div>
+  </form>
+</dialog>
+
+<dialog id="ai-site-form-dialog" class="engine-form-dialog" aria-labelledby="ai-site-form-title">
+  <form method="dialog" id="ai-site-form">
+    <h3 class="dialog-title" id="ai-site-form-title">添加 AI 网站</h3>
+    <label class="dialog-label">名称<input type="text" id="ai-site-name" class="dialog-input" required></label>
+    <label class="dialog-label">快捷词<input type="text" id="ai-site-shortcut" class="dialog-input" required></label>
+    <label class="dialog-label">URL 模板<input type="url" id="ai-site-url" class="dialog-input" required></label>
+    <p class="dialog-hint">使用 {query} 将 Prompt 填入 URL；省略时只打开网站。</p>
+    <div class="dialog-actions"><div class="dialog-actions-right"><button type="button" value="cancel" class="dialog-btn btn-cancel">取消</button><button type="submit" class="dialog-btn btn-save">保存</button></div></div>
   </form>
 </dialog>
 `;

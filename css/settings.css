@@ -52,7 +52,7 @@
   background: var(--surface);
   box-shadow: var(--shadow-lg);
   color: var(--text-primary);
-  width: min(480px, 90vw);
+  width: min(760px, 94vw);
   animation: dialog-in 0.2s ease;
 }
 
@@ -161,6 +161,66 @@
   list-style: none;
   padding: 0;
   margin: 0 0 0.75rem;
+}
+
+.ai-site-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+  display: grid;
+  gap: 0.625rem;
+}
+
+.ai-site-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 54px;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.ai-site-type {
+  flex: 0 0 auto;
+  padding: 0.2rem 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 0.625rem;
+}
+
+.ai-site-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  border-radius: 3px;
+}
+
+.ai-site-icon[hidden] {
+  display: none;
+}
+
+.ai-site-details {
+  min-width: 0;
+  flex: 1;
+}
+
+.ai-site-name {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ai-site-template {
+  display: block;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .engine-list-item {

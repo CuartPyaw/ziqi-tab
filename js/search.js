@@ -2,6 +2,8 @@
  * Search — custom engine dropdown with icons, material texture, fade animation.
  */
 
+import { getAiSiteByShortcut } from './ai.js';
+
 const elInput = document.getElementById('search-input');
 const elIconBtn = document.getElementById('engine-icon-btn');
 const elChevronBtn = document.getElementById('engine-chevron-btn');
@@ -10,6 +12,9 @@ const elEngineLetter = document.getElementById('engine-letter');
 const elMenu = document.getElementById('engine-menu');
 const elBackdrop = document.getElementById('engine-backdrop');
 const elSearchWrapper = document.querySelector('.search-wrapper');
+const elAiChip = document.getElementById('ai-search-chip');
+const elAiChipIcon = document.getElementById('ai-search-chip-icon');
+const elAiChipName = document.getElementById('ai-search-chip-name');
 const STORAGE_KEY = 'ziqi-engine';
 const CUSTOM_KEY = 'ziqi-engines';
 const ORDER_KEY = 'ziqi-engine-order';
@@ -17,28 +22,12 @@ const ORDER_KEY = 'ziqi-engine-order';
 const elSuggestions = document.getElementById('search-suggestions');
 const elSuggestionList = document.getElementById('search-suggestion-list');
 
-const AI_DOUBLE_TAB_WINDOW_MS = 400;
-const AI_ENGINES = [
-  {
-    id: 'deepseek',
-    name: 'DeepSeek',
-    homeUrl: 'https://chat.deepseek.com/',
-    // ponytail: no searchUrl — DeepSeek web doesn't natively support URL query params
-  },
-  {
-    id: 'chatgpt',
-    name: 'ChatGPT',
-    homeUrl: 'https://chatgpt.com/',
-    searchUrl: 'https://chatgpt.com/?q=',
-  },
-];
 const GOOGLE_SUGGEST_URL = 'https://suggestqueries.google.com/complete/search?client=chrome&q=';
 const SUGGESTION_MESSAGE_TYPE = 'ziqi:get-search-suggestions';
 const SUGGESTION_LIMIT = 6;
 const SUGGESTION_DEBOUNCE_MS = 200;
 
-let aiSearchActive = false;
-let lastTabAt = 0;
+let activeAiSite = null;
 let suggestionItems = [];
 let remoteSuggestions = [];
 let highlightedSuggestionIndex = -1;
@@ -75,8 +64,8 @@ export function destroySearch() {
     clearTimeout(suggestionDebounceTimer);
     suggestionDebounceTimer = null;
   }
-  lastTabAt = 0;
-  aiSearchActive = false;
+  activeAiSite = null;
+  renderAiChip();
   suggestionItems = [];
   remoteSuggestions = [];
   highlightedSuggestionIndex = -1;
@@ -335,29 +324,54 @@ function search(query) {
   window.location.href = engine.url + encodeURIComponent(query.trim());
 }
 
-function buildAiSearchUrl(engine, query) {
-  const trimmed = query.trim();
-  if (!trimmed || !engine.searchUrl) return engine.homeUrl;
-  return engine.searchUrl + encodeURIComponent(trimmed);
-}
-
-function navigateAiSearch(engine, query) {
-  const trimmed = query.trim();
-  if (!engine.searchUrl && trimmed) {
-    try { navigator.clipboard.writeText(trimmed); } catch (_) { /* ignore */ }
+function aiIconUrl(site) {
+  if (typeof chrome !== 'undefined' && chrome.runtime?.getURL) {
+    return chrome.runtime.getURL(`/_favicon/?pageUrl=${encodeURIComponent(site.url)}&size=32`);
   }
-  window.location.href = buildAiSearchUrl(engine, query);
+  return `https://cdn.simpleicons.org/${site.id}`;
 }
 
-function createSuggestionItems() {
-  const aiItems = aiSearchActive
-    ? AI_ENGINES.map((engine) => ({
-        kind: 'ai',
-        engine,
-        text: `AI 智能搜索 · ${engine.name}`,
-      }))
-    : [];
+function renderAiChip() {
+  if (!activeAiSite) {
+    elAiChip.setAttribute('hidden', '');
+    elInput.placeholder = '搜索…';
+    return;
+  }
+  elAiChipIcon.src = aiIconUrl(activeAiSite);
+  elAiChipIcon.onerror = () => elAiChipIcon.setAttribute('hidden', '');
+  elAiChipIcon.removeAttribute('hidden');
+  elAiChipName.textContent = activeAiSite.name;
+  elAiChip.removeAttribute('hidden');
+  elInput.placeholder = `向 ${activeAiSite.name} 提问…`;
+}
 
+function activateAiSearch(site) {
+  activeAiSite = site;
+  elInput.value = '';
+  hideSuggestions();
+  renderAiChip();
+}
+
+function deactivateAiSearch() {
+  activeAiSite = null;
+  renderAiChip();
+}
+
+function navigateAiSearch(site, query) {
+  const trimmed = query.trim();
+  if (!trimmed) return;
+  window.location.href = site.url.includes('{query}')
+    ? site.url.replace('{query}', encodeURIComponent(trimmed))
+    : site.url;
+}
+
+function createSuggestionItems(query = elInput.value.trim()) {
+  const matchedSite = !activeAiSite && query ? getAiSiteByShortcut(query) : null;
+  const aiItems = matchedSite ? [{
+    kind: 'ai-shortcut',
+    site: matchedSite,
+    text: `按 Tab 使用 ${matchedSite.name}`,
+  }] : [];
   const searchItems = remoteSuggestions.map((text) => ({
     kind: 'suggestion',
     text,
@@ -366,18 +380,9 @@ function createSuggestionItems() {
   return [...aiItems, ...searchItems];
 }
 
-function openAiSearchSuggestions() {
-  closeMenu();
-  aiSearchActive = true;
-  suggestionItems = createSuggestionItems();
-  highlightedSuggestionIndex = suggestionItems.length ? 0 : -1;
-  renderSuggestions();
-}
-
 /* ── Suggestion helpers ─────────────────── */
 
 function hideSuggestions() {
-  aiSearchActive = false;
   remoteSuggestions = [];
   suggestionItems = [];
   highlightedSuggestionIndex = -1;
@@ -397,14 +402,14 @@ function renderSuggestions() {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'search-suggestion';
-    if (item.kind === 'ai') button.classList.add('search-suggestion--ai');
+    if (item.kind === 'ai-shortcut') button.classList.add('search-suggestion--ai');
     if (index === highlightedSuggestionIndex) button.classList.add('is-highlighted');
     button.setAttribute('role', 'option');
     button.setAttribute('aria-selected', index === highlightedSuggestionIndex ? 'true' : 'false');
     button.textContent = item.text;
     button.addEventListener('click', () => {
-      if (item.kind === 'ai') {
-        navigateAiSearch(item.engine, elInput.value);
+      if (item.kind === 'ai-shortcut') {
+        activateAiSearch(item.site);
         return;
       }
       elInput.value = item.text;
@@ -448,14 +453,8 @@ async function fetchSuggestions(query, requestSeq) {
     if (requestSeq !== suggestionRequestSeq) return;
 
     remoteSuggestions = nextItems;
-    suggestionItems = createSuggestionItems();
-    if (aiSearchActive && suggestionItems.length > 0) {
-      highlightedSuggestionIndex = highlightedSuggestionIndex >= 0
-        ? Math.min(highlightedSuggestionIndex, suggestionItems.length - 1)
-        : 0;
-    } else {
-      highlightedSuggestionIndex = -1;
-    }
+    suggestionItems = createSuggestionItems(query);
+    highlightedSuggestionIndex = -1;
     renderSuggestions();
   } catch (_) {
     if (requestSeq === suggestionRequestSeq) hideSuggestions();
@@ -474,7 +473,7 @@ function queueSuggestionsFetch(rawValue) {
     suggestionRequestSeq += 1;
     remoteSuggestions = [];
     suggestionItems = createSuggestionItems();
-    highlightedSuggestionIndex = suggestionItems.length ? 0 : -1;
+    highlightedSuggestionIndex = -1;
     renderSuggestions();
     return;
   }
@@ -518,54 +517,36 @@ export function initSearch() {
     closeMenu();
   });
 
-  // Keyboard: Escape closes menu, double Tab opens AI search
+  // Keyboard: Escape closes the engine menu.
   _addClean(document, 'keydown', (e) => {
-    // Escape → close menu
     if (e.key === 'Escape' && !elMenu.hasAttribute('hidden')) {
       closeMenu();
       elIconBtn.focus();
-      return;
-    }
-
-    // Tab / Shift+Tab → navigate suggestions
-    if (e.key === 'Tab' && document.activeElement === elInput) {
-      if (!elSuggestions.hasAttribute('hidden')) {
-        e.preventDefault();
-        if (!aiSearchActive && !e.shiftKey && highlightedSuggestionIndex <= 0) {
-          const now = Date.now();
-
-          if ((now - lastTabAt) <= AI_DOUBLE_TAB_WINDOW_MS) {
-            lastTabAt = 0;
-            openAiSearchSuggestions();
-            return;
-          }
-
-          lastTabAt = now;
-        } else {
-          lastTabAt = 0;
-        }
-
-        moveSuggestionHighlight(e.shiftKey ? -1 : +1);
-        return;
-      }
-
-      if (elMenu.hasAttribute('hidden') && !e.shiftKey) {
-        const now = Date.now();
-        e.preventDefault();
-
-        if ((now - lastTabAt) <= AI_DOUBLE_TAB_WINDOW_MS) {
-          lastTabAt = 0;
-          openAiSearchSuggestions();
-          return;
-        }
-
-        lastTabAt = now;
-      }
     }
   });
 
   // Keyboard navigation for suggestions + search on Enter
   _addClean(elInput, 'keydown', (e) => {
+    if (e.key === 'Tab' && !e.shiftKey && !activeAiSite) {
+      const site = getAiSiteByShortcut(elInput.value);
+      if (site) {
+        e.preventDefault();
+        activateAiSearch(site);
+      }
+      return;
+    }
+
+    if (e.key === 'Backspace' && activeAiSite && !elInput.value) {
+      deactivateAiSearch();
+      return;
+    }
+
+    if (e.key === 'Escape' && activeAiSite) {
+      e.preventDefault();
+      deactivateAiSearch();
+      return;
+    }
+
     if (e.key === 'ArrowDown' && !elSuggestions.hasAttribute('hidden')) {
       e.preventDefault();
       moveSuggestionHighlight(+1);
@@ -585,13 +566,19 @@ export function initSearch() {
     }
 
     if (e.key === 'Enter') {
+      if (activeAiSite) {
+        e.preventDefault();
+        navigateAiSearch(activeAiSite, elInput.value);
+        return;
+      }
+
       const selectedItem = highlightedSuggestionIndex >= 0
         ? suggestionItems[highlightedSuggestionIndex]
         : null;
 
-      if (selectedItem?.kind === 'ai') {
+      if (selectedItem?.kind === 'ai-shortcut') {
         e.preventDefault();
-        navigateAiSearch(selectedItem.engine, elInput.value);
+        activateAiSearch(selectedItem.site);
         return;
       }
 
@@ -615,12 +602,11 @@ export function initSearch() {
 
   // Trigger suggestions on input
   _addClean(elInput, 'input', () => {
-    lastTabAt = 0;
     queueSuggestionsFetch(elInput.value);
   });
 
   _addClean(document, 'click', (e) => {
-    if (aiSearchActive && !elSearchWrapper.contains(e.target)) {
+    if (!elSuggestions.hasAttribute('hidden') && !elSearchWrapper.contains(e.target)) {
       hideSuggestions();
     }
   });
@@ -633,6 +619,11 @@ export function initSearch() {
       selectEngine('google', true);
     }
     renderTriggerIcon();
+  });
+
+  _addClean(window, 'ai-sites-changed', () => {
+    deactivateAiSearch();
+    hideSuggestions();
   });
 
 }

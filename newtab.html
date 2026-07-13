@@ -38,6 +38,10 @@
             <circle cx="11" cy="11" r="8"/>
             <path d="m21 21-4.3-4.3"/>
           </svg>
+          <span class="ai-search-chip" id="ai-search-chip" hidden>
+            <img id="ai-search-chip-icon" alt="" />
+            <span id="ai-search-chip-name"></span>
+          </span>
           <input
             type="text"
             id="search-input"
@@ -154,6 +158,9 @@
           <button type="button" class="settings-nav-item" data-tab="engines">
 搜索引擎
           </button>
+          <button type="button" class="settings-nav-item" data-tab="ai">
+AI
+          </button>
         </nav>
         <div class="settings-panels" id="settings-panels">
           <div class="settings-panel active" data-panel="search">
@@ -170,6 +177,11 @@
             <h3 class="settings-panel-title">搜索引擎</h3>
             <ul class="engine-list" id="engine-list"></ul>
             <button type="button" class="engine-add-btn" id="engine-add-btn">+ 添加搜索引擎</button>
+          </div>
+          <div class="settings-panel" data-panel="ai">
+            <h3 class="settings-panel-title">AI</h3>
+            <ul class="ai-site-list" id="ai-site-list"></ul>
+            <button type="button" class="engine-add-btn" id="ai-site-add-btn">+ 添加 AI 网站</button>
           </div>
         </div>
       </div>
@@ -194,6 +206,31 @@
         <input type="url" id="engine-url" class="dialog-input" placeholder="https://kagi.com/search?q=" required>
       </label>
       <p class="dialog-hint">查询词会追加在 URL 末尾</p>
+      <div class="dialog-actions">
+        <div class="dialog-actions-right">
+          <button type="button" value="cancel" class="dialog-btn btn-cancel">取消</button>
+          <button type="submit" class="dialog-btn btn-save">保存</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="ai-site-form-dialog" class="engine-form-dialog" aria-labelledby="ai-site-form-title">
+    <form method="dialog" id="ai-site-form">
+      <h3 class="dialog-title" id="ai-site-form-title">添加 AI 网站</h3>
+      <label class="dialog-label">
+        名称
+        <input type="text" id="ai-site-name" class="dialog-input" placeholder="例如：ChatGPT" required>
+      </label>
+      <label class="dialog-label">
+        快捷词
+        <input type="text" id="ai-site-shortcut" class="dialog-input" placeholder="例如：gpt" required>
+      </label>
+      <label class="dialog-label">
+        URL 模板
+        <input type="url" id="ai-site-url" class="dialog-input" placeholder="https://example.com/?q={query}" required>
+      </label>
+      <p class="dialog-hint">使用 {query} 将 Prompt 填入 URL；省略时只打开网站。</p>
       <div class="dialog-actions">
         <div class="dialog-actions-right">
           <button type="button" value="cancel" class="dialog-btn btn-cancel">取消</button>

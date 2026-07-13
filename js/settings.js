@@ -3,6 +3,7 @@
  */
 
 import { getAllEngines, getCurrentEngine } from './search.js';
+import { getAiSites, saveAiSites } from './ai.js';
 
 const elSettingsBtn = document.getElementById('settings-toggle');
 const elDialog = document.getElementById('settings-dialog');
@@ -17,6 +18,14 @@ const elEngineForm = document.getElementById('engine-form');
 const elEngineFormTitle = document.getElementById('engine-form-title');
 const elEngineName = document.getElementById('engine-name');
 const elEngineUrl = document.getElementById('engine-url');
+const elAiSiteList = document.getElementById('ai-site-list');
+const elAiSiteAddBtn = document.getElementById('ai-site-add-btn');
+const elAiSiteFormDialog = document.getElementById('ai-site-form-dialog');
+const elAiSiteForm = document.getElementById('ai-site-form');
+const elAiSiteFormTitle = document.getElementById('ai-site-form-title');
+const elAiSiteName = document.getElementById('ai-site-name');
+const elAiSiteShortcut = document.getElementById('ai-site-shortcut');
+const elAiSiteUrl = document.getElementById('ai-site-url');
 const WIDTH_KEY = 'ziqi-search-width';
 const CUSTOM_KEY = 'ziqi-engines';
 const ORDER_KEY = 'ziqi-engine-order';
@@ -208,12 +217,115 @@ function getEngineOrderInternal() {
   return ['google', 'bing', 'duckduckgo', ...customs.map(e => e.id)];
 }
 
+/* ── AI site management ────────────────── */
+
+function aiSiteIconUrl(site) {
+  if (typeof chrome !== 'undefined' && chrome.runtime?.getURL) {
+    return chrome.runtime.getURL(`/_favicon/?pageUrl=${encodeURIComponent(site.url)}&size=32`);
+  }
+  return `https://cdn.simpleicons.org/${site.id}`;
+}
+
+function renderAiSiteList() {
+  elAiSiteList.innerHTML = '';
+  getAiSites().forEach(site => {
+    const li = document.createElement('li');
+    li.className = 'ai-site-list-item';
+
+    const type = document.createElement('span');
+    type.className = 'ai-site-type';
+    type.textContent = 'AI';
+
+    const icon = document.createElement('img');
+    icon.className = 'ai-site-icon';
+    icon.src = aiSiteIconUrl(site);
+    icon.alt = '';
+    icon.onerror = () => icon.setAttribute('hidden', '');
+
+    const details = document.createElement('span');
+    details.className = 'ai-site-details';
+    details.innerHTML = `<span class="ai-site-name"></span><span class="ai-site-template"></span>`;
+    details.querySelector('.ai-site-name').textContent = site.name;
+    details.querySelector('.ai-site-template').textContent = `${site.shortcut} · ${site.url}`;
+
+    const actions = document.createElement('span');
+    actions.className = 'engine-list-item-actions';
+    actions.innerHTML = `
+      <button type="button" class="engine-list-action-btn" data-ai-action="edit" data-id="${site.id}" title="编辑">✏️</button>
+      <button type="button" class="engine-list-action-btn" data-ai-action="delete" data-id="${site.id}" title="删除">🗑️</button>
+    `;
+
+    li.append(type, icon, details, actions);
+    elAiSiteList.appendChild(li);
+  });
+
+  elAiSiteList.querySelectorAll('[data-ai-action="edit"]').forEach(btn => {
+    btn.addEventListener('click', () => openAiSiteForm(btn.getAttribute('data-id')));
+  });
+  elAiSiteList.querySelectorAll('[data-ai-action="delete"]').forEach(btn => {
+    btn.addEventListener('click', () => deleteAiSite(btn.getAttribute('data-id')));
+  });
+}
+
+let editingAiSiteId = null;
+
+function openAiSiteForm(siteId = null) {
+  editingAiSiteId = siteId;
+  const site = getAiSites().find(item => item.id === siteId);
+  elAiSiteFormTitle.textContent = site ? '编辑 AI 网站' : '添加 AI 网站';
+  elAiSiteName.value = site?.name || '';
+  elAiSiteShortcut.value = site?.shortcut || '';
+  elAiSiteUrl.value = site?.url || '';
+  elAiSiteFormDialog.showModal();
+}
+
+function saveAiSite() {
+  const name = elAiSiteName.value.trim();
+  const shortcut = elAiSiteShortcut.value.trim().toLowerCase();
+  const url = elAiSiteUrl.value.trim();
+  const sites = getAiSites();
+
+  if (!name || !shortcut) {
+    alert('名称和快捷词不能为空');
+    return;
+  }
+  if (!/^[a-z0-9_-]+$/.test(shortcut)) {
+    alert('快捷词只能包含字母、数字、连字符或下划线');
+    return;
+  }
+  if (!url.startsWith('https://')) {
+    alert('URL 模板必须以 https:// 开头');
+    return;
+  }
+  if (sites.some(site => site.shortcut.toLowerCase() === shortcut && site.id !== editingAiSiteId)) {
+    alert('快捷词已存在，请使用不同的快捷词');
+    return;
+  }
+
+  const nextSite = { id: editingAiSiteId || crypto.randomUUID().slice(0, 8), name, shortcut, url };
+  const nextSites = editingAiSiteId
+    ? sites.map(site => site.id === editingAiSiteId ? nextSite : site)
+    : [...sites, nextSite];
+
+  saveAiSites(nextSites);
+  elAiSiteFormDialog.close();
+  renderAiSiteList();
+  window.dispatchEvent(new CustomEvent('ai-sites-changed'));
+}
+
+function deleteAiSite(siteId) {
+  saveAiSites(getAiSites().filter(site => site.id !== siteId));
+  renderAiSiteList();
+  window.dispatchEvent(new CustomEvent('ai-sites-changed'));
+}
+
 /* ── Dialog ────────────────────────────── */
 
 function openDialog() {
   elSlider.value = storedWidth;
   updateDisplay();
   renderEngineList();
+  renderAiSiteList();
   switchTab('search');
   elDialog.showModal();
 }
@@ -292,6 +404,21 @@ export function initSettings() {
     if (elDialog.open) {
       elDialog.showModal();
     }
+  });
+
+  elAiSiteAddBtn.addEventListener('click', () => openAiSiteForm());
+  elAiSiteForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    saveAiSite();
+  });
+  elAiSiteForm.querySelector('[value="cancel"]').addEventListener('click', () => {
+    elAiSiteFormDialog.close();
+  });
+  elAiSiteFormDialog.addEventListener('click', (e) => {
+    if (e.target === elAiSiteFormDialog) elAiSiteFormDialog.close();
+  });
+  elAiSiteFormDialog.addEventListener('close', () => {
+    if (elDialog.open) elDialog.showModal();
   });
 
   // Listen for external engine changes to refresh list

@@ -89,6 +89,15 @@ describe('settings tabs', () => {
     expect(document.querySelector('[data-tab="search"]').classList.contains('active')).toBe(true);
     expect(document.querySelector('[data-panel="search"]').classList.contains('active')).toBe(true);
   });
+
+  it('switches to the AI panel and renders the presets', () => {
+    document.getElementById('settings-toggle').click();
+    const aiNav = document.querySelector('[data-tab="ai"]');
+    aiNav.click();
+    expect(aiNav.classList.contains('active')).toBe(true);
+    expect(document.querySelector('[data-panel="ai"]').classList.contains('active')).toBe(true);
+    expect(document.querySelectorAll('.ai-site-list-item')).toHaveLength(8);
+  });
 });
 
 describe('bottom shortcuts', () => {
@@ -219,5 +228,21 @@ describe('engine management', () => {
 
     const customs = JSON.parse(localStorage.getItem('ziqi-engines'));
     expect(customs.length).toBe(0);
+  });
+});
+
+describe('AI site management', () => {
+  it('saves a custom AI site with its shortcut and URL template', () => {
+    document.getElementById('settings-toggle').click();
+    document.querySelector('[data-tab="ai"]').click();
+    document.getElementById('ai-site-add-btn').click();
+
+    document.getElementById('ai-site-name').value = 'Example AI';
+    document.getElementById('ai-site-shortcut').value = 'exa';
+    document.getElementById('ai-site-url').value = 'https://example.com/?q={query}';
+    document.getElementById('ai-site-form').dispatchEvent(new Event('submit'));
+
+    const sites = JSON.parse(localStorage.getItem('ziqi-ai-sites'));
+    expect(sites.at(-1)).toMatchObject({ name: 'Example AI', shortcut: 'exa' });
   });
 });

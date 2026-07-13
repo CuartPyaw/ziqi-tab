@@ -244,58 +244,52 @@ describe('search', () => {
     expect(document.getElementById('engine-icon').src).toMatch(/\/icons\/google\.svg$/);
   });
 
-  it('opens AI search on a quick double Tab', async () => {
+  it('puts the matching AI shortcut ahead of normal suggestions', async () => {
+    queueSuggestionResponse(['gpt login']);
     const input = document.getElementById('search-input');
-    input.focus();
-
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
-    await vi.advanceTimersByTimeAsync(150);
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    input.value = 'gpt';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    await vi.advanceTimersByTimeAsync(200);
+    await Promise.resolve();
 
     const items = document.querySelectorAll('.search-suggestion');
-    expect(document.getElementById('search-suggestions').hasAttribute('hidden')).toBe(false);
-    expect(items[0]?.textContent).toBe('AI 智能搜索 · DeepSeek');
-    expect(items[1]?.textContent).toBe('AI 智能搜索 · ChatGPT');
-    expect(document.getElementById('engine-icon').src).toMatch(/\/icons\/google\.svg$/);
+    expect(items[0]?.textContent).toBe('按 Tab 使用 ChatGPT');
+    expect(items[1]?.textContent).toBe('gpt login');
   });
 
-  it('uses DeepSeek by default when Enter is pressed with AI search open', async () => {
+  it('activates an AI site on Tab after its complete shortcut', () => {
+    const input = document.getElementById('search-input');
+    input.value = 'ds';
+    input.focus();
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+
+    expect(document.getElementById('ai-search-chip-name').textContent).toBe('DeepSeek');
+    expect(document.getElementById('ai-search-chip').hasAttribute('hidden')).toBe(false);
+    expect(input.value).toBe('');
+  });
+
+  it('navigates with the active AI URL template on Enter', () => {
     const origLoc = window.location;
     delete window.location;
     const captured = { href: '' };
     window.location = captured;
 
     const input = document.getElementById('search-input');
+    input.value = 'gpt';
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
     input.value = 'hello ai';
-    input.focus();
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
-    await vi.advanceTimersByTimeAsync(150);
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
 
-    expect(captured.href).toBe('https://chat.deepseek.com/');
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('hello ai');
+    expect(captured.href).toBe('https://chatgpt.com/?hints=search&ref=ext&q=hello%20ai');
     window.location = origLoc;
   });
 
-  it('cycles AI targets with Tab once the AI search panel is open', async () => {
-    const origLoc = window.location;
-    delete window.location;
-    const captured = { href: '' };
-    window.location = captured;
-
+  it('does not activate AI search for a partial shortcut', () => {
     const input = document.getElementById('search-input');
-    input.value = 'compare models';
-    input.focus();
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
-    await vi.advanceTimersByTimeAsync(150);
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    input.value = 'g';
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
 
-    expect(document.querySelector('.search-suggestion.is-highlighted')?.textContent).toBe('AI 智能搜索 · ChatGPT');
-    expect(captured.href).toBe('https://chatgpt.com/?q=compare%20models');
-    window.location = origLoc;
+    expect(document.getElementById('ai-search-chip').hasAttribute('hidden')).toBe(true);
   });
 
   // ── Custom Engines ──────────────────────
@@ -399,23 +393,6 @@ describe('search', () => {
       expect(items[0].textContent).toBe('hello');
     });
 
-    it('inserts AI search entries before normal suggestions after double Tab', async () => {
-      queueSuggestionResponse(['hello', 'hello kitty']);
-
-      const input = await typeAndFlushSuggestions('hel');
-      input.focus();
-      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
-      await vi.advanceTimersByTimeAsync(150);
-      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
-
-      const items = document.querySelectorAll('.search-suggestion');
-      expect(items).toHaveLength(4);
-      expect(items[0].textContent).toBe('AI 智能搜索 · DeepSeek');
-      expect(items[1].textContent).toBe('AI 智能搜索 · ChatGPT');
-      expect(items[2].textContent).toBe('hello');
-      expect(items[3].textContent).toBe('hello kitty');
-    });
-
     it('hides suggestions for blank input without calling fetch', async () => {
       const input = document.getElementById('search-input');
       input.value = '   ';
@@ -442,14 +419,14 @@ describe('search', () => {
       window.location = origLoc;
     });
 
-    it('uses Tab to browse suggestions instead of cycling engines while the panel is open', async () => {
+    it('does not activate AI search while a normal suggestion is open', async () => {
       queueSuggestionResponse(['alpha', 'beta']);
 
       const input = await typeAndFlushSuggestions('a');
       input.focus();
-      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
 
-      expect(document.querySelector('.search-suggestion.is-highlighted')?.textContent).toBe('alpha');
+      expect(document.getElementById('ai-search-chip').hasAttribute('hidden')).toBe(true);
       expect(document.getElementById('engine-icon').src).toMatch(/\/icons\/google\.svg$/);
     });
 
