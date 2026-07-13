@@ -28,6 +28,9 @@
   --border-focus: #b8956a;
   --accent:       #b8956a;
   --accent-hover: #a07c54;
+  --ai-chip-bg:   #f5ede1;
+  --ai-chip-border:#d7bb94;
+  --ai-chip-text: #655039;
   --shadow-sm:    0 1px 3px rgba(61, 53, 41, 0.08);
   --shadow-md:    0 4px 16px rgba(61, 53, 41, 0.10);
   --shadow-lg:    0 8px 32px rgba(61, 53, 41, 0.12);
@@ -57,6 +60,9 @@
   --border-focus: #c9a878;
   --accent:       #c9a878;
   --accent-hover: #d4b888;
+  --ai-chip-bg:   #4a3c2d;
+  --ai-chip-border:#796040;
+  --ai-chip-text: #ead9bd;
   --shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.20);
   --shadow-md:    0 4px 16px rgba(0, 0, 0, 0.30);
   --shadow-lg:    0 8px 32px rgba(0, 0, 0, 0.40);
