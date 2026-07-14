@@ -15,6 +15,7 @@ vi.stubGlobal('chrome', {
 
 beforeEach(() => {
   localStorage.clear();
+  chrome.history.search.mockClear();
   document.documentElement.removeAttribute('data-theme');
   mockHistoryData = [];
   const grid = document.getElementById('recent-grid');
@@ -57,6 +58,26 @@ describe('initRecent', () => {
     await initRecent();
 
     expect(document.querySelectorAll('#recent-grid .link-item')).toHaveLength(4);
+  });
+
+  it('uses the saved display limit', async () => {
+    localStorage.setItem('ziqi-recent-limit', '8');
+    mockHistoryData = Array.from({ length: 9 }, (_value, index) => ({
+      url: `https://site${index}.example/page`, title: `Site ${index}`,
+    }));
+
+    await initRecent();
+
+    expect(document.querySelectorAll('#recent-grid .link-item')).toHaveLength(8);
+  });
+
+  it('does not read history when the module is disabled', async () => {
+    localStorage.setItem('ziqi-recent-enabled', 'false');
+
+    await initRecent();
+
+    expect(chrome.history.search).not.toHaveBeenCalled();
+    expect(document.getElementById('recent-sites').hidden).toBe(true);
   });
 
   it('hides section when chrome.history returns empty', async () => {

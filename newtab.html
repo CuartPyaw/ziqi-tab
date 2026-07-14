@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="css/links.css">
   <link rel="stylesheet" href="css/settings.css">
   <link rel="stylesheet" href="css/recent.css">
+  <link rel="stylesheet" href="css/todos.css">
 </head>
 <body>
   <div id="nav-progress" class="nav-progress"></div>
@@ -86,12 +87,12 @@
           <path d="M12 7v5l4 2"/>
         </svg>
       </button>
-      <button id="settings-toggle" class="settings-btn" title="设置">
+      <a id="settings-toggle" class="settings-btn" href="settings.html" target="_blank" rel="noopener" title="设置" aria-label="设置">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/>
           <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
         </svg>
-      </button>
+      </a>
       <button id="theme-toggle" class="settings-btn" title="切换深色/浅色模式">
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -110,6 +111,41 @@
       </button>
   </footer>
 
+  <button id="todos-toggle" class="todos-toggle" type="button" aria-label="打开待办">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="m3 6 1.5 1.5L7 4.5"/>
+      <path d="M10 6h11"/>
+      <path d="m3 12 1.5 1.5L7 10.5"/>
+      <path d="M10 12h11"/>
+      <path d="m3 18 1.5 1.5L7 16.5"/>
+      <path d="M10 18h11"/>
+    </svg>
+  </button>
+
+  <dialog id="todos-dialog" class="todos-dialog" aria-labelledby="todos-dialog-title">
+    <div class="todos-dialog-head">
+      <div class="todos-dialog-tabs" role="tablist" aria-label="待办内容">
+        <button class="todos-dialog-tab is-active" id="todos-active-tab" type="button" role="tab" aria-selected="true" aria-controls="todos-active-panel" data-todo-tab="active">任务</button>
+        <button class="todos-dialog-tab" id="todos-archive-tab" type="button" role="tab" aria-selected="false" aria-controls="todos-archive-panel" data-todo-tab="archive">归档</button>
+      </div>
+      <span class="todos-count" id="todos-count" aria-label="当前任务数量"></span>
+    </div>
+    <section class="todos-dialog-panel" id="todos-active-panel" role="tabpanel" aria-labelledby="todos-active-tab" data-todo-panel="active">
+      <h2 class="sr-only" id="todos-dialog-title">待办事项</h2>
+      <div class="todos-dialog-scroll">
+        <ul class="todo-list" id="todo-list"></ul>
+        <p class="todo-empty" id="todo-empty" hidden>暂无待办</p>
+      </div>
+      <input class="todo-input" id="todo-input" type="text" placeholder="添加待办…" aria-label="添加待办">
+    </section>
+    <section class="todos-dialog-panel" id="todos-archive-panel" role="tabpanel" aria-labelledby="todos-archive-tab" data-todo-panel="archive" hidden>
+      <div class="todos-dialog-scroll">
+        <ul class="archive-list" id="archive-list"></ul>
+        <p class="archive-empty" id="archive-empty" hidden>归档为空</p>
+      </div>
+    </section>
+  </dialog>
+
   <dialog id="link-dialog" class="link-dialog">
     <form method="dialog" id="link-form">
       <h3 class="dialog-title">编辑快捷链接</h3>
@@ -127,92 +163,6 @@
       </label>
       <div class="dialog-actions">
         <button type="button" id="link-delete" class="dialog-btn btn-delete" hidden>删除</button>
-        <div class="dialog-actions-right">
-          <button type="button" value="cancel" class="dialog-btn btn-cancel">取消</button>
-          <button type="submit" class="dialog-btn btn-save">保存</button>
-        </div>
-      </div>
-    </form>
-  </dialog>
-
-  <dialog id="settings-dialog" class="settings-dialog">
-    <form method="dialog" class="settings-form">
-      <div class="settings-layout">
-        <nav class="settings-nav" id="settings-nav">
-          <button type="button" class="settings-nav-item active" data-tab="search">
-搜索栏
-          </button>
-          <button type="button" class="settings-nav-item" data-tab="engines">
-搜索引擎
-          </button>
-          <button type="button" class="settings-nav-item" data-tab="ai">
-AI
-          </button>
-        </nav>
-        <div class="settings-panels" id="settings-panels">
-          <div class="settings-panel active" data-panel="search">
-            <h3 class="settings-panel-title">搜索栏</h3>
-            <div class="settings-item">
-              <label class="settings-label">搜索栏长度</label>
-              <div class="settings-row">
-                <input type="range" id="search-width" class="settings-slider" min="360" max="720" value="520" step="10">
-                <span class="settings-value" id="search-width-value">520px</span>
-              </div>
-            </div>
-          </div>
-          <div class="settings-panel" data-panel="engines">
-            <h3 class="settings-panel-title">搜索引擎</h3>
-            <ul class="engine-list" id="engine-list"></ul>
-            <button type="button" class="engine-add-btn" id="engine-add-btn">+ 添加搜索引擎</button>
-          </div>
-          <div class="settings-panel" data-panel="ai">
-            <h3 class="settings-panel-title">AI</h3>
-            <ul class="ai-site-list" id="ai-site-list"></ul>
-            <button type="button" class="engine-add-btn" id="ai-site-add-btn">+ 添加 AI 网站</button>
-          </div>
-        </div>
-      </div>
-    </form>
-  </dialog>
-
-  <dialog id="engine-form-dialog" class="engine-form-dialog" aria-labelledby="engine-form-title">
-    <form method="dialog" id="engine-form">
-      <h3 class="dialog-title" id="engine-form-title">添加搜索引擎</h3>
-      <label class="dialog-label">
-        引擎名称
-        <input type="text" id="engine-name" class="dialog-input" placeholder="例如：Kagi" required>
-      </label>
-      <label class="dialog-label">
-        搜索 URL
-        <input type="url" id="engine-url" class="dialog-input" placeholder="https://kagi.com/search?q=" required>
-      </label>
-      <p class="dialog-hint">查询词会追加在 URL 末尾</p>
-      <div class="dialog-actions">
-        <div class="dialog-actions-right">
-          <button type="button" value="cancel" class="dialog-btn btn-cancel">取消</button>
-          <button type="submit" class="dialog-btn btn-save">保存</button>
-        </div>
-      </div>
-    </form>
-  </dialog>
-
-  <dialog id="ai-site-form-dialog" class="engine-form-dialog" aria-labelledby="ai-site-form-title">
-    <form method="dialog" id="ai-site-form">
-      <h3 class="dialog-title" id="ai-site-form-title">添加 AI 网站</h3>
-      <label class="dialog-label">
-        名称
-        <input type="text" id="ai-site-name" class="dialog-input" placeholder="例如：ChatGPT" required>
-      </label>
-      <label class="dialog-label">
-        快捷词
-        <input type="text" id="ai-site-shortcut" class="dialog-input" placeholder="例如：gpt" required>
-      </label>
-      <label class="dialog-label">
-        URL 模板
-        <input type="url" id="ai-site-url" class="dialog-input" placeholder="https://example.com/?q={query}" required>
-      </label>
-      <p class="dialog-hint">使用 {query} 将 Prompt 填入 URL；省略时只打开网站。</p>
-      <div class="dialog-actions">
         <div class="dialog-actions-right">
           <button type="button" value="cancel" class="dialog-btn btn-cancel">取消</button>
           <button type="submit" class="dialog-btn btn-save">保存</button>

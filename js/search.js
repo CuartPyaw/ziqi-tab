@@ -113,6 +113,12 @@ export function setCurrentEngine(key) {
   return true;
 }
 
+export function restoreCurrentEngine() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  const all = getAllEnginesMap();
+  currentEngine = saved && all[saved] ? saved : 'google';
+}
+
 /* ── Search ────────────────────────────── */
 
 function search(query) {
@@ -285,9 +291,7 @@ function queueSuggestionsFetch(rawValue) {
 
 export function initSearch() {
   // Restore saved engine preference
-  const saved = localStorage.getItem(STORAGE_KEY);
-  const all = getAllEnginesMap();
-  currentEngine = saved && all[saved] ? saved : 'google';
+  restoreCurrentEngine();
 
   // Keyboard navigation for suggestions + search on Enter
   _addClean(elInput, 'keydown', (e) => {

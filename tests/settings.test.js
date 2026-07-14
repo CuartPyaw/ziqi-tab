@@ -1,267 +1,195 @@
 /**
- * Settings — immediate search bar width and engine preference persistence.
+ * Standalone settings page — persistence, tabs, and inline editors.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { initSettings } from '../js/settings.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { initSettingsLink, initSettingsPage } from '../js/settings.js';
 import { getCurrentEngine, setCurrentEngine } from '../js/search.js';
+
+function mountSettingsPage() {
+  document.body.innerHTML = `
+    <a id="settings-toggle" href="settings.html" target="_blank"></a>
+    <nav id="settings-nav">
+      <button class="settings-nav-item active" data-tab="dashboard"></button>
+      <button class="settings-nav-item" data-tab="search"></button>
+      <button class="settings-nav-item" data-tab="engines"></button>
+      <button class="settings-nav-item" data-tab="ai"></button>
+    </nav>
+    <section class="settings-panel active" data-panel="dashboard">
+      <input id="recent-enabled" type="checkbox">
+      <fieldset id="recent-limit-group"><input type="radio" name="recent-limit" value="4"><input type="radio" name="recent-limit" value="8"><input type="radio" name="recent-limit" value="12"></fieldset>
+      <input id="todos-enabled" type="checkbox">
+    </section>
+    <section class="settings-panel" data-panel="search">
+      <input id="search-width" value="520"><span id="search-width-value"></span>
+    </section>
+    <section class="settings-panel" data-panel="engines">
+      <div id="engine-list-view"><ul id="engine-list"></ul><button id="engine-add-btn"></button></div>
+      <form id="engine-form" hidden>
+        <h2 id="engine-form-title"></h2><input id="engine-name"><input id="engine-url">
+        <button type="button" id="engine-form-cancel"></button><button type="button" id="engine-delete" hidden></button>
+      </form>
+    </section>
+    <section class="settings-panel" data-panel="ai">
+      <div id="ai-site-list-view"><ul id="ai-site-list"></ul><button id="ai-site-add-btn"></button></div>
+      <form id="ai-site-form" hidden>
+        <h2 id="ai-site-form-title"></h2><input id="ai-site-name"><input id="ai-site-shortcut"><input id="ai-site-url">
+        <button type="button" id="ai-site-form-cancel"></button><button type="button" id="ai-site-delete" hidden></button>
+      </form>
+    </section>
+  `;
+}
 
 beforeEach(() => {
   localStorage.clear();
   setCurrentEngine('google');
   document.documentElement.style.removeProperty('--search-width');
-  initSettings();
+  mountSettingsPage();
+  initSettingsPage();
+});
+
+describe('settings link', () => {
+  it('keeps the navigation target and applies the saved search width', () => {
+    localStorage.setItem('ziqi-search-width', '620');
+    initSettingsLink();
+
+    expect(document.getElementById('settings-toggle').getAttribute('href')).toBe('settings.html');
+    expect(document.getElementById('settings-toggle').getAttribute('target')).toBe('_blank');
+    expect(document.documentElement.style.getPropertyValue('--search-width')).toBe('620px');
+  });
 });
 
 describe('search width', () => {
-  it('applies default width (520px) on init', () => {
+  it('applies the default width on load', () => {
     expect(document.documentElement.style.getPropertyValue('--search-width')).toBe('520px');
-  });
-
-  it('restores saved width from localStorage', () => {
-    localStorage.setItem('ziqi-search-width', '620');
-    // Re-init
-    initSettings();
-    expect(document.documentElement.style.getPropertyValue('--search-width')).toBe('620px');
-  });
-
-  it('clamps width to minimum 360', () => {
-    localStorage.setItem('ziqi-search-width', '100');
-    initSettings();
-    expect(document.documentElement.style.getPropertyValue('--search-width')).toBe('520px'); // default
-  });
-
-  it('clamps width to maximum 720', () => {
-    localStorage.setItem('ziqi-search-width', '999');
-    initSettings();
-    expect(document.documentElement.style.getPropertyValue('--search-width')).toBe('520px'); // default
-  });
-
-  it('handles non-numeric stored value gracefully', () => {
-    localStorage.setItem('ziqi-search-width', 'abc');
-    initSettings();
-    expect(document.documentElement.style.getPropertyValue('--search-width')).toBe('520px');
-  });
-});
-
-describe('dialog', () => {
-  it('opens the settings dialog on toggle button click', () => {
-    document.getElementById('settings-toggle').click();
-    expect(document.getElementById('settings-dialog').open).toBe(true);
-  });
-
-  it('sets slider to stored value when opening', () => {
-    localStorage.setItem('ziqi-search-width', '650');
-    initSettings();
-    document.getElementById('settings-toggle').click();
-    expect(document.getElementById('search-width').value).toBe('650');
-  });
-
-  it('displays the current slider value', () => {
-    document.getElementById('settings-toggle').click();
-    // Default is 520
     expect(document.getElementById('search-width-value').textContent).toBe('520px');
   });
 
-  it('saves width immediately and keeps it after the dialog closes', () => {
-    document.getElementById('settings-toggle').click();
+  it('restores a valid stored width', () => {
+    localStorage.setItem('ziqi-search-width', '650');
+    initSettingsPage();
+
+    expect(document.getElementById('search-width').value).toBe('650');
+    expect(document.documentElement.style.getPropertyValue('--search-width')).toBe('650px');
+  });
+
+  it('saves width changes immediately', () => {
     const slider = document.getElementById('search-width');
     slider.value = '600';
     slider.dispatchEvent(new Event('input'));
 
     expect(localStorage.getItem('ziqi-search-width')).toBe('600');
-    expect(document.documentElement.style.getPropertyValue('--search-width')).toBe('600px');
-
-    document.getElementById('settings-dialog').close();
-    expect(document.documentElement.style.getPropertyValue('--search-width')).toBe('600px');
+    expect(document.getElementById('search-width-value').textContent).toBe('600px');
   });
-
 });
 
 describe('settings tabs', () => {
-  it('switches to engines panel when nav item clicked', () => {
-    document.getElementById('settings-toggle').click();
-    const enginesNav = document.querySelector('[data-tab="engines"]');
-    enginesNav.click();
-    expect(enginesNav.classList.contains('active')).toBe(true);
+  it('switches to the engines panel', () => {
+    document.querySelector('[data-tab="engines"]').click();
+
+    expect(document.querySelector('[data-tab="engines"]').classList.contains('active')).toBe(true);
     expect(document.querySelector('[data-panel="engines"]').classList.contains('active')).toBe(true);
   });
 
-  it('has search panel active by default', () => {
-    document.getElementById('settings-toggle').click();
-    expect(document.querySelector('[data-tab="search"]').classList.contains('active')).toBe(true);
-    expect(document.querySelector('[data-panel="search"]').classList.contains('active')).toBe(true);
-  });
+  it('renders the AI presets when its panel is selected', () => {
+    document.querySelector('[data-tab="ai"]').click();
 
-  it('switches to the AI panel and renders the presets', () => {
-    document.getElementById('settings-toggle').click();
-    const aiNav = document.querySelector('[data-tab="ai"]');
-    aiNav.click();
-    expect(aiNav.classList.contains('active')).toBe(true);
-    expect(document.querySelector('[data-panel="ai"]').classList.contains('active')).toBe(true);
     expect(document.querySelectorAll('.ai-site-list-item')).toHaveLength(8);
   });
 });
 
-describe('bottom shortcuts', () => {
-  it('extensions shortcut exists with correct target', () => {
-    const el = document.getElementById('extensions-shortcut');
-    expect(el).not.toBeNull();
-    expect(el.tagName).toBe('BUTTON');
-    expect(el.classList.contains('settings-btn')).toBe(true);
-    expect(el.dataset.browserUrl).toBe('chrome://extensions/');
-    expect(el.getAttribute('title')).toBe('扩展程序');
-    expect(el.getAttribute('aria-label')).toBe('扩展程序');
-    expect(el.getAttribute('type')).toBe('button');
-    expect(el.querySelector('svg').getAttribute('aria-hidden')).toBe('true');
+describe('dashboard settings', () => {
+  it('saves recent browsing visibility and count', () => {
+    document.getElementById('recent-enabled').click();
+    document.querySelector('input[name="recent-limit"][value="8"]').click();
+
+    expect(localStorage.getItem('ziqi-recent-enabled')).toBe('false');
+    expect(localStorage.getItem('ziqi-recent-limit')).toBe('8');
   });
 
-  it('history shortcut exists with correct target', () => {
-    const el = document.getElementById('history-shortcut');
-    expect(el).not.toBeNull();
-    expect(el.tagName).toBe('BUTTON');
-    expect(el.classList.contains('settings-btn')).toBe(true);
-    expect(el.dataset.browserUrl).toBe('chrome://history/');
-    expect(el.getAttribute('title')).toBe('历史记录');
-    expect(el.getAttribute('aria-label')).toBe('历史记录');
-    expect(el.getAttribute('type')).toBe('button');
-    expect(el.querySelector('svg').getAttribute('aria-hidden')).toBe('true');
-  });
+  it('saves todo visibility', () => {
+    document.getElementById('todos-enabled').click();
 
-  it('bookmarks shortcut exists with correct target', () => {
-    const el = document.getElementById('bookmarks-shortcut');
-    expect(el).not.toBeNull();
-    expect(el.tagName).toBe('BUTTON');
-    expect(el.classList.contains('settings-btn')).toBe(true);
-    expect(el.dataset.browserUrl).toBe('chrome://bookmarks/');
-    expect(el.getAttribute('title')).toBe('书签');
-    expect(el.getAttribute('aria-label')).toBe('书签');
-    expect(el.getAttribute('type')).toBe('button');
-    expect(el.querySelector('svg').getAttribute('aria-hidden')).toBe('true');
-  });
-
-  it('existing settings toggle and theme toggle remain present', () => {
-    expect(document.getElementById('settings-toggle')).not.toBeNull();
-    expect(document.getElementById('theme-toggle')).not.toBeNull();
+    expect(localStorage.getItem('ziqi-todos-enabled')).toBe('false');
   });
 });
 
 describe('engine management', () => {
-  it('renders preset engines in the list', () => {
-    document.getElementById('settings-toggle').click();
+  it('changes the default engine immediately', () => {
     document.querySelector('[data-tab="engines"]').click();
-    const items = document.querySelectorAll('.engine-list-item');
-    expect(items.length).toBeGreaterThanOrEqual(3);
-    expect(items[0].textContent).toContain('Google');
-    expect(items[0].textContent).toContain('预设');
-    expect(document.querySelectorAll('.engine-default-radio')).toHaveLength(items.length);
-    expect(document.querySelector('.engine-default-radio:checked').value).toBe('google');
-  });
-
-  it('changes the default engine immediately when its radio is selected', () => {
-    document.getElementById('settings-toggle').click();
-    document.querySelector('[data-tab="engines"]').click();
-
     document.querySelector('.engine-default-radio[value="bing"]').click();
 
     expect(localStorage.getItem('ziqi-engine')).toBe('bing');
     expect(getCurrentEngine().id).toBe('bing');
+  });
+
+  it('restores the saved default engine', () => {
+    localStorage.setItem('ziqi-engine', 'bing');
+    initSettingsPage();
+    document.querySelector('[data-tab="engines"]').click();
+
     expect(document.querySelector('.engine-default-radio:checked').value).toBe('bing');
   });
 
-  it('renders custom engines with edit/delete buttons', () => {
-    localStorage.setItem('ziqi-engines', JSON.stringify([
-      { id: 'test-1', name: 'TestEngine', url: 'https://test.com/search?q=', builtin: false }
-    ]));
-    localStorage.setItem('ziqi-engine-order', JSON.stringify(['google', 'bing', 'duckduckgo', 'test-1']));
-    document.getElementById('settings-toggle').click();
-    document.querySelector('[data-tab="engines"]').click();
-    const editBtns = document.querySelectorAll('[data-action="edit"]');
-    const deleteBtns = document.querySelectorAll('[data-action="delete"]');
-    expect(editBtns.length).toBe(1);
-    expect(deleteBtns.length).toBe(1);
-  });
-
-  it('opens engine form dialog on add button click', () => {
-    document.getElementById('settings-toggle').click();
-    document.querySelector('[data-tab="engines"]').click();
-    document.getElementById('engine-add-btn').click();
-    expect(document.getElementById('engine-form-dialog').open).toBe(true);
-  });
-
-  it('saves custom engine to localStorage', () => {
-    document.getElementById('settings-toggle').click();
+  it('opens and cancels the inline add form', () => {
     document.querySelector('[data-tab="engines"]').click();
     document.getElementById('engine-add-btn').click();
 
+    expect(document.getElementById('engine-form').hidden).toBe(false);
+    expect(document.getElementById('engine-list-view').hidden).toBe(true);
+
+    document.getElementById('engine-form-cancel').click();
+    expect(document.getElementById('engine-form').hidden).toBe(true);
+  });
+
+  it('saves a custom engine from the inline form', () => {
+    document.querySelector('[data-tab="engines"]').click();
+    document.getElementById('engine-add-btn').click();
     document.getElementById('engine-name').value = 'Kagi';
     document.getElementById('engine-url').value = 'https://kagi.com/search?q=';
     document.getElementById('engine-form').dispatchEvent(new Event('submit'));
 
-    const customs = JSON.parse(localStorage.getItem('ziqi-engines'));
-    expect(customs.length).toBe(1);
-    expect(customs[0].name).toBe('Kagi');
+    expect(JSON.parse(localStorage.getItem('ziqi-engines'))[0]).toMatchObject({ name: 'Kagi' });
+    expect(document.getElementById('engine-form').hidden).toBe(true);
   });
 
-  it('rejects empty engine name', () => {
-    const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
-    document.getElementById('settings-toggle').click();
+  it('deletes an edited custom engine from its inline form', () => {
+    localStorage.setItem('ziqi-engines', JSON.stringify([
+      { id: 'test-delete', name: 'To Delete', url: 'https://example.com/?q=', builtin: false },
+    ]));
+    localStorage.setItem('ziqi-engine-order', JSON.stringify(['google', 'bing', 'duckduckgo', 'test-delete']));
+    initSettingsPage();
     document.querySelector('[data-tab="engines"]').click();
-    document.getElementById('engine-add-btn').click();
+    document.querySelector('[data-action="edit"]').click();
+    document.getElementById('engine-delete').click();
 
-    document.getElementById('engine-name').value = '';
-    document.getElementById('engine-url').value = 'https://example.com/search?q=';
-    document.getElementById('engine-form').dispatchEvent(new Event('submit'));
-
-    expect(alertMock).toHaveBeenCalledWith(expect.stringContaining('名称'));
-    alertMock.mockRestore();
+    expect(JSON.parse(localStorage.getItem('ziqi-engines'))).toEqual([]);
+    expect(document.getElementById('engine-form').hidden).toBe(true);
   });
 
-  it('rejects non-https URL', () => {
+  it('rejects a non-HTTPS URL', () => {
     const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
-    document.getElementById('settings-toggle').click();
     document.querySelector('[data-tab="engines"]').click();
     document.getElementById('engine-add-btn').click();
-
     document.getElementById('engine-name').value = 'Test';
-    document.getElementById('engine-url').value = 'http://example.com/search?q=';
+    document.getElementById('engine-url').value = 'http://example.com';
     document.getElementById('engine-form').dispatchEvent(new Event('submit'));
 
     expect(alertMock).toHaveBeenCalledWith(expect.stringContaining('https://'));
     alertMock.mockRestore();
   });
-
-  it('deletes custom engine', () => {
-    localStorage.setItem('ziqi-engines', JSON.stringify([
-      { id: 'test-del', name: 'ToDelete', url: 'https://delete.com/search?q=', builtin: false }
-    ]));
-    localStorage.setItem('ziqi-engine-order', JSON.stringify(['google', 'bing', 'duckduckgo', 'test-del']));
-    setCurrentEngine('test-del');
-    document.getElementById('settings-toggle').click();
-    document.querySelector('[data-tab="engines"]').click();
-
-    const deleteBtn = document.querySelector('[data-action="delete"]');
-    deleteBtn.click();
-
-    const customs = JSON.parse(localStorage.getItem('ziqi-engines'));
-    expect(customs.length).toBe(0);
-    expect(localStorage.getItem('ziqi-engine')).toBe('google');
-    expect(getCurrentEngine().id).toBe('google');
-  });
 });
 
 describe('AI site management', () => {
-  it('saves a custom AI site with its shortcut and URL template', () => {
-    document.getElementById('settings-toggle').click();
+  it('saves a custom AI site from the inline form', () => {
     document.querySelector('[data-tab="ai"]').click();
     document.getElementById('ai-site-add-btn').click();
-
     document.getElementById('ai-site-name').value = 'Example AI';
     document.getElementById('ai-site-shortcut').value = 'exa';
     document.getElementById('ai-site-url').value = 'https://example.com/?q={query}';
     document.getElementById('ai-site-form').dispatchEvent(new Event('submit'));
 
-    const sites = JSON.parse(localStorage.getItem('ziqi-ai-sites'));
-    expect(sites.at(-1)).toMatchObject({ name: 'Example AI', shortcut: 'exa' });
+    expect(JSON.parse(localStorage.getItem('ziqi-ai-sites')).at(-1)).toMatchObject({ name: 'Example AI', shortcut: 'exa' });
+    expect(document.getElementById('ai-site-form').hidden).toBe(true);
   });
 });

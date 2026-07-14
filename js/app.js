@@ -7,7 +7,8 @@ import { initClock } from './clock.js';
 import { initSearch } from './search.js';
 import { initLinks } from './links.js';
 import { initRecent } from './recent.js';
-import { initSettings } from './settings.js';
+import { initTodos } from './todos.js';
+import { initSettingsLink } from './settings.js';
 
 /* ── Browser Shortcuts (Extensions / Bookmarks / History) ───────────────── */
 
@@ -61,19 +62,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // 5. Recent browsing sites — recent history cards
   initRecent();
 
-  // 6. Settings — panel with search bar width control
-  initSettings();
+  // 6. Todos — left-side dialog with active and archived tasks
+  initTodos();
 
-  // 7. Theme toggle button
+  // 7. Settings — apply saved width and link to the settings page
+  initSettingsLink();
+
+  // 8. Theme toggle button
   document.getElementById('theme-toggle').addEventListener('click', () => {
     toggleTheme();
     window.dispatchEvent(new CustomEvent('theme-changed'));
   });
 
-  // 8. Browser shortcuts — use extension tabs API for chrome:// pages
+  // 9. Browser shortcuts — use extension tabs API for chrome:// pages
   initBrowserShortcuts();
 
-  // 9. 新标签页打开动画 — fade in on the main page
+  // 10. 新标签页打开动画 — fade in on the main page
   const container = document.querySelector('.container');
   container.style.visibility = 'visible';
   const mainPage = document.querySelector('.page--main');

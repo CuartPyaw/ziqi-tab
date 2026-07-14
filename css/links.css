@@ -6,7 +6,7 @@
 
 .content-stage {
   width: 100%;
-  padding: 0 8px var(--recent-dock-space);
+  padding: 0 8px 2rem;
   margin: 0 -8px 0;
 }
 

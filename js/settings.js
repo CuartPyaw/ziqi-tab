@@ -1,96 +1,132 @@
 /**
- * Settings — left-right split panel with search width and engine management.
+ * Settings persistence and the standalone settings page.
  */
 
-import { getAllEngines, getCurrentEngine, setCurrentEngine } from './search.js';
+import { getAllEngines, getCurrentEngine, restoreCurrentEngine, setCurrentEngine } from './search.js';
 import { getAiSites, saveAiSites } from './ai.js';
+import { getRecentPreferences, setRecentEnabled, setRecentLimit } from './recent.js';
+import { getTodosEnabled, setTodosEnabled } from './todos.js';
 
-const elSettingsBtn = document.getElementById('settings-toggle');
-const elDialog = document.getElementById('settings-dialog');
-const elSlider = document.getElementById('search-width');
-const elValue = document.getElementById('search-width-value');
-const elNav = document.getElementById('settings-nav');
-const elEngineList = document.getElementById('engine-list');
-const elEngineAddBtn = document.getElementById('engine-add-btn');
-const elEngineFormDialog = document.getElementById('engine-form-dialog');
-const elEngineForm = document.getElementById('engine-form');
-const elEngineFormTitle = document.getElementById('engine-form-title');
-const elEngineName = document.getElementById('engine-name');
-const elEngineUrl = document.getElementById('engine-url');
-const elAiSiteList = document.getElementById('ai-site-list');
-const elAiSiteAddBtn = document.getElementById('ai-site-add-btn');
-const elAiSiteFormDialog = document.getElementById('ai-site-form-dialog');
-const elAiSiteForm = document.getElementById('ai-site-form');
-const elAiSiteFormTitle = document.getElementById('ai-site-form-title');
-const elAiSiteName = document.getElementById('ai-site-name');
-const elAiSiteShortcut = document.getElementById('ai-site-shortcut');
-const elAiSiteUrl = document.getElementById('ai-site-url');
 const WIDTH_KEY = 'ziqi-search-width';
 const CUSTOM_KEY = 'ziqi-engines';
 const ORDER_KEY = 'ziqi-engine-order';
 
-/* ── Search bar width ──────────────────── */
+let storedWidth = 520;
+let editingEngineId = null;
+let editingAiSiteId = null;
 
 function getStoredWidth() {
   try {
-    const v = localStorage.getItem(WIDTH_KEY);
-    if (v !== null) {
-      const n = parseInt(v, 10);
-      if (n >= 360 && n <= 720) return n;
+    const value = localStorage.getItem(WIDTH_KEY);
+    if (value !== null) {
+      const width = parseInt(value, 10);
+      if (width >= 360 && width <= 720) return width;
     }
-  } catch (_) { /* fall through */ }
+  } catch (_) { /* Use the default width. */ }
   return 520;
 }
 
-let storedWidth = 520;
-
-function applyWidth(val) {
-  document.documentElement.style.setProperty('--search-width', val + 'px');
+function applyWidth(value) {
+  document.documentElement.style.setProperty('--search-width', `${value}px`);
 }
 
-function saveWidth(val) {
-  storedWidth = val;
-  localStorage.setItem(WIDTH_KEY, String(val));
-  applyWidth(val);
+function saveWidth(value) {
+  storedWidth = value;
+  localStorage.setItem(WIDTH_KEY, String(value));
+  applyWidth(value);
 }
 
-function updateDisplay() {
-  elValue.textContent = elSlider.value + 'px';
+export function initSettingsLink() {
+  storedWidth = getStoredWidth();
+  applyWidth(storedWidth);
 }
 
-/* ── Tab switching ─────────────────────── */
+function getEngineOrder() {
+  try {
+    const raw = localStorage.getItem(ORDER_KEY);
+    if (raw) {
+      const order = JSON.parse(raw);
+      if (Array.isArray(order)) return order;
+    }
+  } catch (_) { /* Build the default order below. */ }
+
+  try {
+    const customs = JSON.parse(localStorage.getItem(CUSTOM_KEY) || '[]');
+    if (Array.isArray(customs)) return ['google', 'bing', 'duckduckgo', ...customs.map(engine => engine.id)];
+  } catch (_) { /* Use the built-in engines. */ }
+  return ['google', 'bing', 'duckduckgo'];
+}
+
+function loadCustomEngines() {
+  try {
+    const engines = JSON.parse(localStorage.getItem(CUSTOM_KEY) || '[]');
+    return Array.isArray(engines) ? engines : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function showEngineList() {
+  document.getElementById('engine-list-view').hidden = false;
+  document.getElementById('engine-form').hidden = true;
+}
+
+function showAiSiteList() {
+  document.getElementById('ai-site-list-view').hidden = false;
+  document.getElementById('ai-site-form').hidden = true;
+}
+
+function initDashboardSettings() {
+  const recentEnabled = document.getElementById('recent-enabled');
+  const todoEnabled = document.getElementById('todos-enabled');
+  if (!recentEnabled || !todoEnabled) return;
+
+  const preferences = getRecentPreferences();
+  recentEnabled.checked = preferences.enabled;
+  document.querySelector(`input[name="recent-limit"][value="${preferences.limit}"]`).checked = true;
+  todoEnabled.checked = getTodosEnabled();
+
+  recentEnabled.addEventListener('change', event => setRecentEnabled(event.currentTarget.checked));
+  document.getElementById('recent-limit-group').addEventListener('change', event => {
+    if (event.target.matches('input[name="recent-limit"]')) setRecentLimit(Number(event.target.value));
+  });
+  todoEnabled.addEventListener('change', event => setTodosEnabled(event.currentTarget.checked));
+}
 
 function switchTab(tabName) {
-  elNav.querySelectorAll('.settings-nav-item').forEach(item => {
-    item.classList.toggle('active', item.getAttribute('data-tab') === tabName);
+  document.querySelectorAll('.settings-nav-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.tab === tabName);
   });
   document.querySelectorAll('.settings-panel').forEach(panel => {
-    panel.classList.toggle('active', panel.getAttribute('data-panel') === tabName);
+    panel.classList.toggle('active', panel.dataset.panel === tabName);
   });
+
+  if (tabName === 'engines') showEngineList();
+  if (tabName === 'ai') showAiSiteList();
 }
 
-/* ── Engine management ─────────────────── */
-
 function renderEngineList() {
-  elEngineList.innerHTML = '';
-  const engines = getAllEngines();
+  const list = document.getElementById('engine-list');
+  list.innerHTML = '';
 
-  engines.forEach(engine => {
-    const li = document.createElement('li');
+  getAllEngines().forEach(engine => {
+    const item = document.createElement('li');
+    item.className = engine.builtin ? 'engine-list-item engine-list-item--preset' : 'engine-list-item';
+
+    const name = document.createElement('span');
+    name.textContent = engine.name;
+    item.appendChild(name);
 
     if (engine.builtin) {
-      li.className = 'engine-list-item engine-list-item--preset';
-      li.innerHTML = `<span>${engine.name}</span><span class="engine-list-item-badge">预设</span>`;
+      const badge = document.createElement('span');
+      badge.className = 'engine-list-item-badge';
+      badge.textContent = '预设';
+      item.appendChild(badge);
     } else {
-      li.className = 'engine-list-item';
-      li.innerHTML = `<span>${engine.name}</span>`;
       const actions = document.createElement('span');
       actions.className = 'engine-list-item-actions';
-      actions.innerHTML = `
-        <button type="button" class="engine-list-action-btn" data-action="edit" data-id="${engine.id}" title="编辑">✏️</button>
-        <button type="button" class="engine-list-action-btn" data-action="delete" data-id="${engine.id}" title="删除">🗑️</button>
-      `;
-      li.appendChild(actions);
+      actions.innerHTML = `<button type="button" class="engine-list-action-btn" data-action="edit" data-id="${engine.id}" title="编辑">✏️</button>`;
+      item.appendChild(actions);
     }
 
     const selection = document.createElement('input');
@@ -106,47 +142,31 @@ function renderEngineList() {
         renderEngineList();
       }
     });
-    li.appendChild(selection);
-
-    elEngineList.appendChild(li);
+    item.appendChild(selection);
+    list.appendChild(item);
   });
 
-  // Bind action buttons
-  elEngineList.querySelectorAll('[data-action="edit"]').forEach(btn => {
-    btn.addEventListener('click', () => openEngineForm(btn.getAttribute('data-id')));
-  });
-  elEngineList.querySelectorAll('[data-action="delete"]').forEach(btn => {
-    btn.addEventListener('click', () => deleteEngine(btn.getAttribute('data-id')));
+  list.querySelectorAll('[data-action="edit"]').forEach(button => {
+    button.addEventListener('click', () => openEngineForm(button.dataset.id));
   });
 }
-
-let editingEngineId = null;
 
 function openEngineForm(engineId = null) {
   editingEngineId = engineId;
+  const form = document.getElementById('engine-form');
+  const engine = getAllEngines().find(item => item.id === engineId);
 
-  if (engineId) {
-    elEngineFormTitle.textContent = '编辑搜索引擎';
-    const engines = getAllEngines();
-    const engine = engines.find(e => e.id === engineId);
-    if (engine) {
-      elEngineName.value = engine.name;
-      elEngineUrl.value = engine.url;
-    }
-  } else {
-    elEngineFormTitle.textContent = '添加搜索引擎';
-    elEngineName.value = '';
-    elEngineUrl.value = '';
-  }
-
-  elEngineFormDialog.showModal();
+  document.getElementById('engine-form-title').textContent = engine ? '编辑搜索引擎' : '添加搜索引擎';
+  document.getElementById('engine-name').value = engine?.name || '';
+  document.getElementById('engine-url').value = engine?.url || '';
+  document.getElementById('engine-delete').hidden = !engine;
+  document.getElementById('engine-list-view').hidden = true;
+  form.hidden = false;
 }
 
 function saveEngine() {
-  const name = elEngineName.value.trim();
-  const url = elEngineUrl.value.trim();
-
-  // Validation
+  const name = document.getElementById('engine-name').value.trim();
+  const url = document.getElementById('engine-url').value.trim();
   if (!name) {
     alert('引擎名称不能为空');
     return;
@@ -156,87 +176,38 @@ function saveEngine() {
     return;
   }
 
-  // Duplicate name check
   const engines = getAllEngines();
-  const duplicate = engines.find(e => e.name === name && e.id !== editingEngineId);
-  if (duplicate) {
+  if (engines.some(engine => engine.name === name && engine.id !== editingEngineId)) {
     alert('引擎名称已存在，请使用不同的名称');
     return;
   }
 
-  // Load current custom engines
-  let customs;
-  try {
-    const raw = localStorage.getItem(CUSTOM_KEY);
-    customs = raw ? JSON.parse(raw) : [];
-    if (!Array.isArray(customs)) customs = [];
-  } catch (_) { customs = []; }
-
+  let customs = loadCustomEngines();
   if (editingEngineId) {
-    // Edit existing
-    customs = customs.map(e => {
-      if (e.id === editingEngineId) {
-        return { ...e, name, url };
-      }
-      return e;
-    });
+    customs = customs.map(engine => engine.id === editingEngineId ? { ...engine, name, url } : engine);
   } else {
-    // Add new
     const id = crypto.randomUUID().slice(0, 8);
     customs.push({ id, name, url, builtin: false });
-
-    // Update order
-    const order = getEngineOrderInternal();
-    order.push(id);
-    localStorage.setItem(ORDER_KEY, JSON.stringify(order));
+    localStorage.setItem(ORDER_KEY, JSON.stringify([...getEngineOrder(), id]));
   }
 
   localStorage.setItem(CUSTOM_KEY, JSON.stringify(customs));
-  elEngineFormDialog.close();
+  showEngineList();
   renderEngineList();
   window.dispatchEvent(new CustomEvent('engines-changed'));
 }
 
-function deleteEngine(id) {
-  const deletedWasCurrent = getCurrentEngine().id === id;
-  let customs;
-  try {
-    const raw = localStorage.getItem(CUSTOM_KEY);
-    customs = raw ? JSON.parse(raw) : [];
-    if (!Array.isArray(customs)) customs = [];
-  } catch (_) { customs = []; }
+function deleteEngine() {
+  if (!editingEngineId) return;
+  const deletedWasCurrent = getCurrentEngine().id === editingEngineId;
+  localStorage.setItem(CUSTOM_KEY, JSON.stringify(loadCustomEngines().filter(engine => engine.id !== editingEngineId)));
+  localStorage.setItem(ORDER_KEY, JSON.stringify(getEngineOrder().filter(id => id !== editingEngineId)));
+  if (deletedWasCurrent) setCurrentEngine('google');
 
-  customs = customs.filter(e => e.id !== id);
-  localStorage.setItem(CUSTOM_KEY, JSON.stringify(customs));
-
-  // Remove from order
-  const order = getEngineOrderInternal().filter(oid => oid !== id);
-  localStorage.setItem(ORDER_KEY, JSON.stringify(order));
-
-  if (deletedWasCurrent) {
-    setCurrentEngine('google');
-  }
-
+  showEngineList();
   renderEngineList();
   window.dispatchEvent(new CustomEvent('engines-changed'));
 }
-
-function getEngineOrderInternal() {
-  try {
-    const raw = localStorage.getItem(ORDER_KEY);
-    if (raw) { const arr = JSON.parse(raw); if (Array.isArray(arr)) return arr; }
-  } catch (_) {}
-  // Fallback: builtins + customs
-  let customs;
-  try {
-    const raw = localStorage.getItem(CUSTOM_KEY);
-    customs = raw ? JSON.parse(raw) : [];
-    if (!Array.isArray(customs)) customs = [];
-  } catch (_) { customs = []; }
-  return ['google', 'bing', 'duckduckgo', ...customs.map(e => e.id)];
-}
-
-/* ── AI site management ────────────────── */
 
 function aiSiteIconUrl(site) {
   if (typeof chrome !== 'undefined' && chrome.runtime?.getURL) {
@@ -246,62 +217,45 @@ function aiSiteIconUrl(site) {
 }
 
 function renderAiSiteList() {
-  elAiSiteList.innerHTML = '';
+  const list = document.getElementById('ai-site-list');
+  list.innerHTML = '';
+
   getAiSites().forEach(site => {
-    const li = document.createElement('li');
-    li.className = 'ai-site-list-item';
-
-    const type = document.createElement('span');
-    type.className = 'ai-site-type';
-    type.textContent = 'AI';
-
-    const icon = document.createElement('img');
-    icon.className = 'ai-site-icon';
-    icon.src = aiSiteIconUrl(site);
-    icon.alt = '';
-    icon.onerror = () => icon.setAttribute('hidden', '');
-
-    const details = document.createElement('span');
-    details.className = 'ai-site-details';
-    details.innerHTML = `<span class="ai-site-name"></span><span class="ai-site-template"></span>`;
-    details.querySelector('.ai-site-name').textContent = site.name;
-    details.querySelector('.ai-site-template').textContent = `${site.shortcut} · ${site.url}`;
-
-    const actions = document.createElement('span');
-    actions.className = 'engine-list-item-actions';
-    actions.innerHTML = `
-      <button type="button" class="engine-list-action-btn" data-ai-action="edit" data-id="${site.id}" title="编辑">✏️</button>
-      <button type="button" class="engine-list-action-btn" data-ai-action="delete" data-id="${site.id}" title="删除">🗑️</button>
+    const item = document.createElement('li');
+    item.className = 'ai-site-list-item';
+    item.innerHTML = `
+      <span class="ai-site-type">AI</span>
+      <img class="ai-site-icon" src="${aiSiteIconUrl(site)}" alt="">
+      <span class="ai-site-details"><span class="ai-site-name"></span><span class="ai-site-template"></span></span>
+      <span class="engine-list-item-actions"><button type="button" class="engine-list-action-btn" data-ai-action="edit" data-id="${site.id}" title="编辑">✏️</button></span>
     `;
-
-    li.append(type, icon, details, actions);
-    elAiSiteList.appendChild(li);
+    item.querySelector('.ai-site-name').textContent = site.name;
+    item.querySelector('.ai-site-template').textContent = `${site.shortcut} · ${site.url}`;
+    item.querySelector('.ai-site-icon').onerror = event => event.currentTarget.setAttribute('hidden', '');
+    list.appendChild(item);
   });
 
-  elAiSiteList.querySelectorAll('[data-ai-action="edit"]').forEach(btn => {
-    btn.addEventListener('click', () => openAiSiteForm(btn.getAttribute('data-id')));
-  });
-  elAiSiteList.querySelectorAll('[data-ai-action="delete"]').forEach(btn => {
-    btn.addEventListener('click', () => deleteAiSite(btn.getAttribute('data-id')));
+  list.querySelectorAll('[data-ai-action="edit"]').forEach(button => {
+    button.addEventListener('click', () => openAiSiteForm(button.dataset.id));
   });
 }
-
-let editingAiSiteId = null;
 
 function openAiSiteForm(siteId = null) {
   editingAiSiteId = siteId;
   const site = getAiSites().find(item => item.id === siteId);
-  elAiSiteFormTitle.textContent = site ? '编辑 AI 网站' : '添加 AI 网站';
-  elAiSiteName.value = site?.name || '';
-  elAiSiteShortcut.value = site?.shortcut || '';
-  elAiSiteUrl.value = site?.url || '';
-  elAiSiteFormDialog.showModal();
+  document.getElementById('ai-site-form-title').textContent = site ? '编辑 AI 网站' : '添加 AI 网站';
+  document.getElementById('ai-site-name').value = site?.name || '';
+  document.getElementById('ai-site-shortcut').value = site?.shortcut || '';
+  document.getElementById('ai-site-url').value = site?.url || '';
+  document.getElementById('ai-site-delete').hidden = !site;
+  document.getElementById('ai-site-list-view').hidden = true;
+  document.getElementById('ai-site-form').hidden = false;
 }
 
 function saveAiSite() {
-  const name = elAiSiteName.value.trim();
-  const shortcut = elAiSiteShortcut.value.trim().toLowerCase();
-  const url = elAiSiteUrl.value.trim();
+  const name = document.getElementById('ai-site-name').value.trim();
+  const shortcut = document.getElementById('ai-site-shortcut').value.trim().toLowerCase();
+  const url = document.getElementById('ai-site-url').value.trim();
   const sites = getAiSites();
 
   if (!name || !shortcut) {
@@ -322,115 +276,53 @@ function saveAiSite() {
   }
 
   const nextSite = { id: editingAiSiteId || crypto.randomUUID().slice(0, 8), name, shortcut, url };
-  const nextSites = editingAiSiteId
+  saveAiSites(editingAiSiteId
     ? sites.map(site => site.id === editingAiSiteId ? nextSite : site)
-    : [...sites, nextSite];
-
-  saveAiSites(nextSites);
-  elAiSiteFormDialog.close();
+    : [...sites, nextSite]);
+  showAiSiteList();
   renderAiSiteList();
   window.dispatchEvent(new CustomEvent('ai-sites-changed'));
 }
 
-function deleteAiSite(siteId) {
-  saveAiSites(getAiSites().filter(site => site.id !== siteId));
+function deleteAiSite() {
+  if (!editingAiSiteId) return;
+  saveAiSites(getAiSites().filter(site => site.id !== editingAiSiteId));
+  showAiSiteList();
   renderAiSiteList();
   window.dispatchEvent(new CustomEvent('ai-sites-changed'));
 }
 
-/* ── Dialog ────────────────────────────── */
-
-function openDialog() {
-  elSlider.value = storedWidth;
-  updateDisplay();
-  renderEngineList();
-  renderAiSiteList();
-  switchTab('search');
-  elDialog.showModal();
-}
-
-function closeDialog() {
-  elDialog.close();
-}
-
-/* ── Init ──────────────────────────────── */
-
-export function initSettings() {
-  // Restore saved width
+export function initSettingsPage() {
   storedWidth = getStoredWidth();
   applyWidth(storedWidth);
+  restoreCurrentEngine();
+  document.getElementById('search-width').value = storedWidth;
+  document.getElementById('search-width-value').textContent = `${storedWidth}px`;
+  renderEngineList();
+  renderAiSiteList();
+  initDashboardSettings();
 
-  // Slider
-  elSlider.addEventListener('input', () => {
-    saveWidth(Number(elSlider.value));
-    updateDisplay();
+  document.getElementById('search-width').addEventListener('input', event => {
+    saveWidth(Number(event.currentTarget.value));
+    document.getElementById('search-width-value').textContent = `${event.currentTarget.value}px`;
   });
-
-  // Open
-  elSettingsBtn.addEventListener('click', openDialog);
-
-  // Close on backdrop click
-  elDialog.addEventListener('click', (e) => {
-    if (e.target === elDialog) closeDialog();
+  document.getElementById('settings-nav').addEventListener('click', event => {
+    const item = event.target.closest('.settings-nav-item');
+    if (item) switchTab(item.dataset.tab);
   });
-
-  // ESC closes without reverting saved changes
-  elDialog.addEventListener('cancel', (e) => {
-    e.preventDefault();
-    closeDialog();
-  });
-
-  // Tab switching
-  elNav.addEventListener('click', (e) => {
-    const item = e.target.closest('.settings-nav-item');
-    if (!item) return;
-    switchTab(item.getAttribute('data-tab'));
-  });
-
-  // Engine add button
-  elEngineAddBtn.addEventListener('click', () => openEngineForm(null));
-
-  // Engine form submission
-  elEngineForm.addEventListener('submit', (e) => {
-    e.preventDefault();
+  document.getElementById('engine-add-btn').addEventListener('click', () => openEngineForm());
+  document.getElementById('engine-form-cancel').addEventListener('click', showEngineList);
+  document.getElementById('engine-form').addEventListener('submit', event => {
+    event.preventDefault();
     saveEngine();
   });
-
-  // Engine form cancel
-  elEngineForm.querySelector('[value="cancel"]').addEventListener('click', () => {
-    elEngineFormDialog.close();
-  });
-
-  // Engine form backdrop click → close
-  elEngineFormDialog.addEventListener('click', (e) => {
-    if (e.target === elEngineFormDialog) elEngineFormDialog.close();
-  });
-
-  // Engine form closed → reopen settings if it was open
-  elEngineFormDialog.addEventListener('close', () => {
-    if (elDialog.open) {
-      elDialog.showModal();
-    }
-  });
-
-  elAiSiteAddBtn.addEventListener('click', () => openAiSiteForm());
-  elAiSiteForm.addEventListener('submit', (e) => {
-    e.preventDefault();
+  document.getElementById('engine-delete').addEventListener('click', deleteEngine);
+  document.getElementById('ai-site-add-btn').addEventListener('click', () => openAiSiteForm());
+  document.getElementById('ai-site-form-cancel').addEventListener('click', showAiSiteList);
+  document.getElementById('ai-site-form').addEventListener('submit', event => {
+    event.preventDefault();
     saveAiSite();
   });
-  elAiSiteForm.querySelector('[value="cancel"]').addEventListener('click', () => {
-    elAiSiteFormDialog.close();
-  });
-  elAiSiteFormDialog.addEventListener('click', (e) => {
-    if (e.target === elAiSiteFormDialog) elAiSiteFormDialog.close();
-  });
-  elAiSiteFormDialog.addEventListener('close', () => {
-    if (elDialog.open) elDialog.showModal();
-  });
-
-  // Listen for external engine changes to refresh list
-  window.addEventListener('engines-changed', () => {
-    renderEngineList();
-  });
-
+  document.getElementById('ai-site-delete').addEventListener('click', deleteAiSite);
+  window.addEventListener('engines-changed', renderEngineList);
 }

@@ -5,6 +5,8 @@
 
 const elSection = document.getElementById('recent-sites');
 const elGrid = document.getElementById('recent-grid');
+const ENABLED_KEY = 'ziqi-recent-enabled';
+const LIMIT_KEY = 'ziqi-recent-limit';
 
 const INTERNAL_PREFIXES = [
   'chrome://',
@@ -16,7 +18,29 @@ const INTERNAL_PREFIXES = [
   'extension:',
 ];
 
+export function getRecentPreferences() {
+  const limit = Number(localStorage.getItem(LIMIT_KEY));
+  return {
+    enabled: localStorage.getItem(ENABLED_KEY) !== 'false',
+    limit: [4, 8, 12].includes(limit) ? limit : 4,
+  };
+}
+
+export function setRecentEnabled(enabled) {
+  localStorage.setItem(ENABLED_KEY, String(enabled));
+}
+
+export function setRecentLimit(limit) {
+  if ([4, 8, 12].includes(limit)) localStorage.setItem(LIMIT_KEY, String(limit));
+}
+
 async function initRecent() {
+  const preferences = getRecentPreferences();
+  if (!preferences.enabled) {
+    elSection.hidden = true;
+    return;
+  }
+
   async function fetchHistory() {
     try {
       if (typeof chrome?.history?.search !== 'function') {
@@ -75,7 +99,9 @@ async function initRecent() {
     elSection.hidden = false;
   }
 
-  const historyItems = await fetchHistory();
+  const historyItems = (await fetchHistory())
+    .slice()
+    .sort((a, b) => (b.lastVisitTime || 0) - (a.lastVisitTime || 0));
   const deduped = new Map();
 
   for (const item of historyItems) {
@@ -100,7 +126,7 @@ async function initRecent() {
     }
   }
 
-  render(Array.from(deduped.values()).slice(0, 4));
+  render(Array.from(deduped.values()).slice(0, preferences.limit));
 
   // Bind click handler once
   if (elGrid.dataset.recentBound === 'true') return;
