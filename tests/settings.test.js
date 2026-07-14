@@ -1,12 +1,14 @@
 /**
- * Settings — search bar width slider, save/cancel behavior.
+ * Settings — immediate search bar width and engine preference persistence.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { initSettings } from '../js/settings.js';
+import { getCurrentEngine, setCurrentEngine } from '../js/search.js';
 
 beforeEach(() => {
   localStorage.clear();
+  setCurrentEngine('google');
   document.documentElement.style.removeProperty('--search-width');
   initSettings();
 });
@@ -61,15 +63,16 @@ describe('dialog', () => {
     expect(document.getElementById('search-width-value').textContent).toBe('520px');
   });
 
-  it('saves width and applies it on save button click', () => {
+  it('saves width immediately and keeps it after the dialog closes', () => {
     document.getElementById('settings-toggle').click();
     const slider = document.getElementById('search-width');
     slider.value = '600';
     slider.dispatchEvent(new Event('input'));
 
-    document.getElementById('settings-save').click();
-
     expect(localStorage.getItem('ziqi-search-width')).toBe('600');
+    expect(document.documentElement.style.getPropertyValue('--search-width')).toBe('600px');
+
+    document.getElementById('settings-dialog').close();
     expect(document.documentElement.style.getPropertyValue('--search-width')).toBe('600px');
   });
 
@@ -151,6 +154,19 @@ describe('engine management', () => {
     expect(items.length).toBeGreaterThanOrEqual(3);
     expect(items[0].textContent).toContain('Google');
     expect(items[0].textContent).toContain('预设');
+    expect(document.querySelectorAll('.engine-default-radio')).toHaveLength(items.length);
+    expect(document.querySelector('.engine-default-radio:checked').value).toBe('google');
+  });
+
+  it('changes the default engine immediately when its radio is selected', () => {
+    document.getElementById('settings-toggle').click();
+    document.querySelector('[data-tab="engines"]').click();
+
+    document.querySelector('.engine-default-radio[value="bing"]').click();
+
+    expect(localStorage.getItem('ziqi-engine')).toBe('bing');
+    expect(getCurrentEngine().id).toBe('bing');
+    expect(document.querySelector('.engine-default-radio:checked').value).toBe('bing');
   });
 
   it('renders custom engines with edit/delete buttons', () => {
@@ -220,6 +236,7 @@ describe('engine management', () => {
       { id: 'test-del', name: 'ToDelete', url: 'https://delete.com/search?q=', builtin: false }
     ]));
     localStorage.setItem('ziqi-engine-order', JSON.stringify(['google', 'bing', 'duckduckgo', 'test-del']));
+    setCurrentEngine('test-del');
     document.getElementById('settings-toggle').click();
     document.querySelector('[data-tab="engines"]').click();
 
@@ -228,6 +245,8 @@ describe('engine management', () => {
 
     const customs = JSON.parse(localStorage.getItem('ziqi-engines'));
     expect(customs.length).toBe(0);
+    expect(localStorage.getItem('ziqi-engine')).toBe('google');
+    expect(getCurrentEngine().id).toBe('google');
   });
 });
 

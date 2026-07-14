@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 2. Clock — time, date, greeting
   initClock();
 
-  // 3. Search — engine selector + Enter-to-search
+  // 3. Search — default engine + Enter-to-search
   initSearch();
 
   // 4. Quick Links — grid + dialog CRUD; listens for theme-changed internally

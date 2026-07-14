@@ -2,14 +2,13 @@
  * Settings — left-right split panel with search width and engine management.
  */
 
-import { getAllEngines, getCurrentEngine } from './search.js';
+import { getAllEngines, getCurrentEngine, setCurrentEngine } from './search.js';
 import { getAiSites, saveAiSites } from './ai.js';
 
 const elSettingsBtn = document.getElementById('settings-toggle');
 const elDialog = document.getElementById('settings-dialog');
 const elSlider = document.getElementById('search-width');
 const elValue = document.getElementById('search-width-value');
-const elSave = document.getElementById('settings-save');
 const elNav = document.getElementById('settings-nav');
 const elEngineList = document.getElementById('engine-list');
 const elEngineAddBtn = document.getElementById('engine-add-btn');
@@ -93,6 +92,21 @@ function renderEngineList() {
       `;
       li.appendChild(actions);
     }
+
+    const selection = document.createElement('input');
+    selection.type = 'radio';
+    selection.name = 'default-engine';
+    selection.className = 'engine-default-radio';
+    selection.value = engine.id;
+    selection.checked = engine.id === getCurrentEngine().id;
+    selection.setAttribute('aria-label', `将 ${engine.name} 设为默认搜索引擎`);
+    selection.addEventListener('change', () => {
+      if (selection.checked) {
+        setCurrentEngine(engine.id);
+        renderEngineList();
+      }
+    });
+    li.appendChild(selection);
 
     elEngineList.appendChild(li);
   });
@@ -184,6 +198,7 @@ function saveEngine() {
 }
 
 function deleteEngine(id) {
+  const deletedWasCurrent = getCurrentEngine().id === id;
   let customs;
   try {
     const raw = localStorage.getItem(CUSTOM_KEY);
@@ -197,6 +212,10 @@ function deleteEngine(id) {
   // Remove from order
   const order = getEngineOrderInternal().filter(oid => oid !== id);
   localStorage.setItem(ORDER_KEY, JSON.stringify(order));
+
+  if (deletedWasCurrent) {
+    setCurrentEngine('google');
+  }
 
   renderEngineList();
   window.dispatchEvent(new CustomEvent('engines-changed'));
@@ -334,17 +353,6 @@ function closeDialog() {
   elDialog.close();
 }
 
-function handleSave() {
-  saveWidth(Number(elSlider.value));
-  closeDialog();
-}
-
-function handleCancel() {
-  elSlider.value = storedWidth;
-  updateDisplay();
-  closeDialog();
-}
-
 /* ── Init ──────────────────────────────── */
 
 export function initSettings() {
@@ -353,24 +361,23 @@ export function initSettings() {
   applyWidth(storedWidth);
 
   // Slider
-  elSlider.addEventListener('input', updateDisplay);
-
-  // Save / Cancel
-  elSave.addEventListener('click', handleSave);
-  elDialog.querySelector('[value="cancel"]').addEventListener('click', handleCancel);
+  elSlider.addEventListener('input', () => {
+    saveWidth(Number(elSlider.value));
+    updateDisplay();
+  });
 
   // Open
   elSettingsBtn.addEventListener('click', openDialog);
 
-  // Close on backdrop click → cancel
+  // Close on backdrop click
   elDialog.addEventListener('click', (e) => {
-    if (e.target === elDialog) handleCancel();
+    if (e.target === elDialog) closeDialog();
   });
 
-  // ESC → cancel
+  // ESC closes without reverting saved changes
   elDialog.addEventListener('cancel', (e) => {
     e.preventDefault();
-    handleCancel();
+    closeDialog();
   });
 
   // Tab switching

@@ -94,17 +94,6 @@ document.body.innerHTML = `
         <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
         <span class="ai-search-chip" id="ai-search-chip" hidden><img id="ai-search-chip-icon" alt=""><span id="ai-search-chip-name"></span></span>
         <input type="text" id="search-input" class="search-input" placeholder="搜索…" autofocus autocomplete="off">
-        <div class="engine-dropdown" id="engine-dropdown">
-          <button class="engine-icon-btn" id="engine-icon-btn" type="button" title="点击选择搜索引擎" aria-haspopup="true" aria-expanded="false">
-            <img class="engine-icon" id="engine-icon" src="" alt="">
-            <span class="engine-letter" id="engine-letter" hidden></span>
-          </button>
-          <button class="engine-chevron-btn" id="engine-chevron-btn" type="button" title="查看所有搜索引擎" aria-hidden="true" tabindex="-1" hidden>
-            <svg class="engine-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div class="engine-menu" id="engine-menu" hidden></div>
-        </div>
-        <div class="engine-backdrop" id="engine-backdrop" hidden></div>
       </div>
       <div class="search-suggestions" id="search-suggestions" hidden>
         <div class="search-suggestion-list" id="search-suggestion-list" role="listbox" aria-label="搜索建议"></div>
@@ -200,12 +189,6 @@ document.body.innerHTML = `
           <ul class="ai-site-list" id="ai-site-list"></ul>
           <button type="button" class="engine-add-btn" id="ai-site-add-btn">+ 添加 AI 网站</button>
         </div>
-      </div>
-    </div>
-    <div class="settings-footer">
-      <div class="dialog-actions-right">
-        <button type="button" value="cancel" class="dialog-btn btn-cancel">关闭</button>
-        <button type="button" id="settings-save" class="dialog-btn btn-save">保存</button>
       </div>
     </div>
   </form>

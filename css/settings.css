@@ -240,9 +240,16 @@
 }
 
 .engine-list-item-badge {
-  margin-left: auto;
   font-size: 0.6875rem;
   color: var(--text-muted);
+}
+
+.engine-default-radio {
+  width: 16px;
+  height: 16px;
+  margin-left: auto;
+  accent-color: var(--accent);
+  cursor: pointer;
 }
 
 .engine-list-item-actions {
@@ -346,14 +353,6 @@
   min-width: 3.2em;
   text-align: right;
   user-select: none;
-}
-
-/* Footer */
-
-.settings-footer {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0 1.5rem 1.25rem;
 }
 
 /* Engine form dialog */
